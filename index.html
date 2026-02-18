@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Progress Dashboard</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-bg: #f3f4f6;
+      --color-surface: #ffffff;
+      --color-primary: #2563eb;
+      --color-primary-hover: #1d4ed8;
+      --color-text: #1f2937;
+      --color-text-secondary: #6b7280;
+      --color-border: #e5e7eb;
+      --color-danger: #ef4444;
+      --color-danger-hover: #dc2626;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+    }
+
+    .btn-danger {
+      background: var(--color-danger);
+      color: #fff;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+    }
+
+    .btn-danger:hover {
+      background: var(--color-danger-hover);
+    }
+
+    .btn-secondary {
+      background: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+
+    /* Main content */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--color-text-secondary);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    .empty-state p {
+      font-size: 1.125rem;
+      margin-bottom: 8px;
+    }
+
+    .empty-state small {
+      font-size: 0.875rem;
+    }
+
+    /* Project card */
+    .project-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .project-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .project-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    .project-meta {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .project-overall {
+      text-align: right;
+    }
+
+    .project-overall-pct {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--color-primary);
+    }
+
+    .project-overall-label {
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Overall progress bar */
+    .overall-bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--color-border);
+      border-radius: 4px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .overall-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--color-primary);
+      transition: width 0.3s ease;
+    }
+
+    /* Phases grid */
+    .phases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .phase-item {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .phase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .phase-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .phase-pct {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .phase-bar-track {
+      width: 100%;
+      height: 6px;
+      background: var(--color-border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .phase-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .phase-bar-fill.design { background: #8b5cf6; }
+    .phase-bar-fill.content { background: #f59e0b; }
+    .phase-bar-fill.qa { background: #10b981; }
+    .phase-bar-fill.audits { background: #ef4444; }
+    .phase-bar-fill.launch { background: #3b82f6; }
+
+    .phase-slider {
+      width: 100%;
+      cursor: pointer;
+      accent-color: var(--color-primary);
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      margin: 16px;
+    }
+
+    .modal h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--color-text);
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      color: var(--color-text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input[type="text"]:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .project-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Summary bar */
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .summary-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--color-primary);
+    }
+
+    .summary-card-label {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .main {
+        padding: 20px 16px;
+      }
+
+      .phases-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-bar {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>Project Progress Dashboard</h1>
+      <div class="header-subtitle">Track website projects through every phase</div>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add Project</button>
+  </div>
+
+  <div class="main">
+    <div class="summary-bar" id="summaryBar"></div>
+    <div id="projectList"></div>
+  </div>
+
+  <!-- Add Project Modal -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <h2 id="modalTitle">Add New Project</h2>
+      <div class="form-group">
+        <label for="projectNameInput">Project Name</label>
+        <input type="text" id="projectNameInput" placeholder="e.g. Acme Corp Website Redesign">
+      </div>
+      <div class="form-group">
+        <label for="projectClientInput">Client / Description (optional)</label>
+        <input type="text" id="projectClientInput" placeholder="e.g. Acme Corp">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" id="modalSaveBtn" onclick="saveProject()">Add Project</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PHASES = [
+      { key: 'design', name: 'Design', cssClass: 'design' },
+      { key: 'content', name: 'Content Generation & Development', cssClass: 'content' },
+      { key: 'qa', name: 'QA & Content Upload', cssClass: 'qa' },
+      { key: 'audits', name: 'Audits', cssClass: 'audits' },
+      { key: 'launch', name: 'Pre-Launch & Launch', cssClass: 'launch' }
+    ];
+
+    const STORAGE_KEY = 'project_dashboard_data';
+
+    let projects = [];
+    let editingProjectId = null;
+
+    // --- Persistence ---
+    function loadProjects() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          projects = JSON.parse(raw);
+        }
+      } catch (e) {
+        projects = [];
+      }
+    }
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    }
+
+    // --- Helpers ---
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function getOverallProgress(project) {
+      const total = PHASES.reduce((sum, phase) => sum + (project.phases[phase.key] || 0), 0);
+      return Math.round(total / PHASES.length);
+    }
+
+    function formatDate(isoString) {
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    // --- Rendering ---
+    function render() {
+      renderSummary();
+      renderProjects();
+    }
+
+    function renderSummary() {
+      const container = document.getElementById('summaryBar');
+      if (projects.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const totalProjects = projects.length;
+      const avgProgress = Math.round(
+        projects.reduce((sum, p) => sum + getOverallProgress(p), 0) / totalProjects
+      );
+      const completed = projects.filter(p => getOverallProgress(p) === 100).length;
+      const inProgress = totalProjects - completed;
+
+      container.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-card-value">${totalProjects}</div>
+          <div class="summary-card-label">Total Projects</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-value">${inProgress}</div>
+          <div class="summary-card-label">In Progress</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-value">${completed}</div>
+          <div class="summary-card-label">Completed</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-value">${avgProgress}%</div>
+          <div class="summary-card-label">Avg. Progress</div>
+        </div>
+      `;
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('projectList');
+
+      if (projects.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p>No projects yet</p>
+            <small>Click "Add Project" to get started.</small>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = projects.map(project => {
+        const overall = getOverallProgress(project);
+        const phasesHtml = PHASES.map(phase => {
+          const pct = project.phases[phase.key] || 0;
+          return `
+            <div class="phase-item">
+              <div class="phase-header">
+                <span class="phase-name">${phase.name}</span>
+                <span class="phase-pct">${pct}%</span>
+              </div>
+              <div class="phase-bar-track">
+                <div class="phase-bar-fill ${phase.cssClass}" style="width: ${pct}%"></div>
+              </div>
+              <input
+                type="range"
+                class="phase-slider"
+                min="0"
+                max="100"
+                step="5"
+                value="${pct}"
+                oninput="updatePhase('${project.id}', '${phase.key}', this.value)"
+              >
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="project-card">
+            <div class="project-header">
+              <div>
+                <div class="project-name">${escapeHtml(project.name)}</div>
+                ${project.client ? `<div class="project-meta">${escapeHtml(project.client)}</div>` : ''}
+                <div class="project-meta">Added ${formatDate(project.createdAt)}</div>
+              </div>
+              <div class="project-actions">
+                <div class="project-overall">
+                  <div class="project-overall-pct">${overall}%</div>
+                  <div class="project-overall-label">Overall</div>
+                </div>
+                <button class="btn btn-danger" onclick="deleteProject('${project.id}')">Remove</button>
+              </div>
+            </div>
+            <div class="overall-bar-track">
+              <div class="overall-bar-fill" style="width: ${overall}%"></div>
+            </div>
+            <div class="phases-grid">
+              ${phasesHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // --- Actions ---
+    function openAddModal() {
+      editingProjectId = null;
+      document.getElementById('modalTitle').textContent = 'Add New Project';
+      document.getElementById('modalSaveBtn').textContent = 'Add Project';
+      document.getElementById('projectNameInput').value = '';
+      document.getElementById('projectClientInput').value = '';
+      document.getElementById('addModal').classList.add('active');
+      document.getElementById('projectNameInput').focus();
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.remove('active');
+      editingProjectId = null;
+    }
+
+    function saveProject() {
+      const name = document.getElementById('projectNameInput').value.trim();
+      const client = document.getElementById('projectClientInput').value.trim();
+
+      if (!name) {
+        document.getElementById('projectNameInput').focus();
+        return;
+      }
+
+      const newProject = {
+        id: generateId(),
+        name: name,
+        client: client,
+        createdAt: new Date().toISOString(),
+        phases: {
+          design: 0,
+          content: 0,
+          qa: 0,
+          audits: 0,
+          launch: 0
+        }
+      };
+
+      projects.unshift(newProject);
+      saveToStorage();
+      closeAddModal();
+      render();
+    }
+
+    function deleteProject(id) {
+      if (!confirm('Remove this project from the dashboard?')) return;
+      projects = projects.filter(p => p.id !== id);
+      saveToStorage();
+      render();
+    }
+
+    function updatePhase(projectId, phaseKey, value) {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+
+      project.phases[phaseKey] = parseInt(value, 10);
+      saveToStorage();
+
+      // Update the displayed percentage and overall without full re-render
+      const card = document.querySelector(`[oninput*="'${projectId}', '${phaseKey}'"]`).closest('.project-card');
+
+      // Update phase percentage text
+      const phaseItem = document.querySelector(`[oninput*="'${projectId}', '${phaseKey}'"]`).closest('.phase-item');
+      phaseItem.querySelector('.phase-pct').textContent = value + '%';
+      phaseItem.querySelector('.phase-bar-fill').style.width = value + '%';
+
+      // Update overall
+      const overall = getOverallProgress(project);
+      card.querySelector('.project-overall-pct').textContent = overall + '%';
+      card.querySelector('.overall-bar-fill').style.width = overall + '%';
+
+      // Update summary bar
+      renderSummary();
+    }
+
+    // --- Keyboard ---
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAddModal();
+      if (e.key === 'Enter' && document.getElementById('addModal').classList.contains('active')) {
+        saveProject();
+      }
+    });
+
+    // Click outside modal to close
+    document.getElementById('addModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('addModal')) {
+        closeAddModal();
+      }
+    });
+
+    // --- Init ---
+    loadProjects();
+    render();
+  </script>
+</body>
+</html>
