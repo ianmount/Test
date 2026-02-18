@@ -300,20 +300,57 @@
       color: var(--color-text);
     }
 
-    .form-group input[type="text"] {
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
       font-size: 0.875rem;
+      font-family: inherit;
       color: var(--color-text);
       outline: none;
       transition: border-color 0.15s;
+      background: var(--color-surface);
     }
 
-    .form-group input[type="text"]:focus {
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="date"]:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Radio group */
+    .radio-group {
+      display: flex;
+      gap: 16px;
+    }
+
+    .radio-group label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .radio-group input[type="radio"] {
+      accent-color: var(--color-primary);
     }
 
     .modal-actions {
@@ -355,6 +392,111 @@
       font-size: 0.8rem;
       color: var(--color-text-secondary);
       margin-top: 2px;
+    }
+
+    /* Project details row */
+    .project-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      background: var(--color-bg);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+    }
+
+    .project-detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .project-detail .detail-label {
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .project-detail .detail-value {
+      color: var(--color-text);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-on-track {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-behind {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-seo-yes {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-seo-no {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    /* Inline editable fields on project card */
+    .project-detail select,
+    .project-detail input[type="date"] {
+      padding: 3px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .project-detail select:focus,
+    .project-detail input[type="date"]:focus {
+      border-color: var(--color-primary);
+    }
+
+    .project-notes {
+      margin-bottom: 20px;
+    }
+
+    .project-notes textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      outline: none;
+      resize: vertical;
+      min-height: 48px;
+      transition: border-color 0.15s;
+    }
+
+    .project-notes textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .project-notes-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-bottom: 6px;
     }
 
     /* Responsive */
@@ -406,6 +548,40 @@
       <div class="form-group">
         <label for="projectClientInput">Client / Description (optional)</label>
         <input type="text" id="projectClientInput" placeholder="e.g. Acme Corp">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>SEO</label>
+          <div class="radio-group">
+            <label><input type="radio" name="seo" value="Yes"> Yes</label>
+            <label><input type="radio" name="seo" value="No" checked> No</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="websiteTypeInput">Website Type</label>
+          <select id="websiteTypeInput">
+            <option value="Webflow Template">Webflow Template</option>
+            <option value="Webflow Semi-Custom">Webflow Semi-Custom</option>
+            <option value="Webflow Fully Custom">Webflow Fully Custom</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="goLiveDateInput">Go Live Date</label>
+          <input type="date" id="goLiveDateInput">
+        </div>
+        <div class="form-group">
+          <label for="statusInput">Status</label>
+          <select id="statusInput">
+            <option value="On Track">On Track</option>
+            <option value="Behind">Behind</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="notesInput">Notes (optional)</label>
+        <textarea id="notesInput" placeholder="Any additional notes..."></textarea>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
@@ -518,6 +694,15 @@
 
       container.innerHTML = projects.map(project => {
         const overall = getOverallProgress(project);
+        const seo = project.seo || 'No';
+        const websiteType = project.websiteType || 'Webflow Template';
+        const goLiveDate = project.goLiveDate || '';
+        const status = project.status || 'On Track';
+        const notes = project.notes || '';
+
+        const statusBadgeClass = status === 'On Track' ? 'badge-on-track' : 'badge-behind';
+        const seoBadgeClass = seo === 'Yes' ? 'badge-seo-yes' : 'badge-seo-no';
+
         const phasesHtml = PHASES.map(phase => {
           const pct = project.phases[phase.key] || 0;
           return `
@@ -542,8 +727,12 @@
           `;
         }).join('');
 
+        const goLiveDateDisplay = goLiveDate
+          ? new Date(goLiveDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : 'Not set';
+
         return `
-          <div class="project-card">
+          <div class="project-card" data-project-id="${project.id}">
             <div class="project-header">
               <div>
                 <div class="project-name">${escapeHtml(project.name)}</div>
@@ -557,6 +746,41 @@
                 </div>
                 <button class="btn btn-danger" onclick="deleteProject('${project.id}')">Remove</button>
               </div>
+            </div>
+            <div class="project-details">
+              <div class="project-detail">
+                <span class="detail-label">SEO:</span>
+                <select onchange="updateField('${project.id}', 'seo', this.value)">
+                  <option value="Yes"${seo === 'Yes' ? ' selected' : ''}>Yes</option>
+                  <option value="No"${seo === 'No' ? ' selected' : ''}>No</option>
+                </select>
+              </div>
+              <div class="project-detail">
+                <span class="detail-label">Type:</span>
+                <select onchange="updateField('${project.id}', 'websiteType', this.value)">
+                  <option value="Webflow Template"${websiteType === 'Webflow Template' ? ' selected' : ''}>Webflow Template</option>
+                  <option value="Webflow Semi-Custom"${websiteType === 'Webflow Semi-Custom' ? ' selected' : ''}>Webflow Semi-Custom</option>
+                  <option value="Webflow Fully Custom"${websiteType === 'Webflow Fully Custom' ? ' selected' : ''}>Webflow Fully Custom</option>
+                </select>
+              </div>
+              <div class="project-detail">
+                <span class="detail-label">Go Live:</span>
+                <input type="date" value="${goLiveDate}" onchange="updateField('${project.id}', 'goLiveDate', this.value)">
+              </div>
+              <div class="project-detail">
+                <span class="detail-label">Status:</span>
+                <select onchange="updateField('${project.id}', 'status', this.value)">
+                  <option value="On Track"${status === 'On Track' ? ' selected' : ''}>On Track</option>
+                  <option value="Behind"${status === 'Behind' ? ' selected' : ''}>Behind</option>
+                </select>
+              </div>
+            </div>
+            <div class="project-notes">
+              <div class="project-notes-label">Notes</div>
+              <textarea
+                placeholder="Add notes..."
+                onchange="updateField('${project.id}', 'notes', this.value)"
+              >${escapeHtml(notes)}</textarea>
             </div>
             <div class="overall-bar-track">
               <div class="overall-bar-fill" style="width: ${overall}%"></div>
@@ -582,6 +806,11 @@
       document.getElementById('modalSaveBtn').textContent = 'Add Project';
       document.getElementById('projectNameInput').value = '';
       document.getElementById('projectClientInput').value = '';
+      document.querySelector('input[name="seo"][value="No"]').checked = true;
+      document.getElementById('websiteTypeInput').value = 'Webflow Template';
+      document.getElementById('goLiveDateInput').value = '';
+      document.getElementById('statusInput').value = 'On Track';
+      document.getElementById('notesInput').value = '';
       document.getElementById('addModal').classList.add('active');
       document.getElementById('projectNameInput').focus();
     }
@@ -600,10 +829,21 @@
         return;
       }
 
+      const seo = document.querySelector('input[name="seo"]:checked').value;
+      const websiteType = document.getElementById('websiteTypeInput').value;
+      const goLiveDate = document.getElementById('goLiveDateInput').value;
+      const status = document.getElementById('statusInput').value;
+      const notes = document.getElementById('notesInput').value.trim();
+
       const newProject = {
         id: generateId(),
         name: name,
         client: client,
+        seo: seo,
+        websiteType: websiteType,
+        goLiveDate: goLiveDate,
+        status: status,
+        notes: notes,
         createdAt: new Date().toISOString(),
         phases: {
           design: 0,
@@ -625,6 +865,13 @@
       projects = projects.filter(p => p.id !== id);
       saveToStorage();
       render();
+    }
+
+    function updateField(projectId, field, value) {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+      project[field] = value;
+      saveToStorage();
     }
 
     function updatePhase(projectId, phaseKey, value) {
