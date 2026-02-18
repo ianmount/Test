@@ -12,58 +12,86 @@
     }
 
     :root {
-      --color-bg: #f3f4f6;
-      --color-surface: #ffffff;
-      --color-primary: #2563eb;
-      --color-primary-light: #dbeafe;
-      --color-text: #1f2937;
-      --color-text-secondary: #6b7280;
-      --color-text-muted: #9ca3af;
-      --color-border: #e5e7eb;
-      --color-border-dark: #d1d5db;
+      --bg-primary: #0f1117;
+      --bg-secondary: #161822;
+      --bg-tertiary: #1c1f2e;
+      --bg-elevated: #222539;
+      --bg-hover: #272b3f;
+
+      --border-primary: #2a2d3e;
+      --border-secondary: #353849;
+      --border-focus: #4f6ef7;
+
+      --text-primary: #e4e6f0;
+      --text-secondary: #9a9cae;
+      --text-muted: #6b6e82;
+      --text-inverse: #0f1117;
+
+      --accent: #4f6ef7;
+      --accent-hover: #6380ff;
+      --accent-subtle: rgba(79, 110, 247, 0.12);
+      --accent-border: rgba(79, 110, 247, 0.3);
+
+      --phase-1: #8b5cf6;
+      --phase-1-bg: rgba(139, 92, 246, 0.12);
+      --phase-1-border: rgba(139, 92, 246, 0.3);
+
+      --phase-2: #f59e0b;
+      --phase-2-bg: rgba(245, 158, 11, 0.12);
+      --phase-2-border: rgba(245, 158, 11, 0.3);
+
+      --phase-3: #10b981;
+      --phase-3-bg: rgba(16, 185, 129, 0.12);
+      --phase-3-border: rgba(16, 185, 129, 0.3);
+
+      --phase-4: #ef4444;
+      --phase-4-bg: rgba(239, 68, 68, 0.12);
+      --phase-4-border: rgba(239, 68, 68, 0.3);
+
+      --phase-5: #3b82f6;
+      --phase-5-bg: rgba(59, 130, 246, 0.12);
+      --phase-5-border: rgba(59, 130, 246, 0.3);
+
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --warning-border: rgba(245, 158, 11, 0.3);
+      --warning-text: #fbbf24;
+
       --radius: 8px;
       --radius-sm: 4px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
-      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.03);
-
-      --phase-design: #7c3aed;
-      --phase-design-bg: #ede9fe;
-      --phase-design-border: #c4b5fd;
-      --phase-dev: #d97706;
-      --phase-dev-bg: #fef3c7;
-      --phase-dev-border: #fcd34d;
-      --phase-qa: #059669;
-      --phase-qa-bg: #d1fae5;
-      --phase-qa-border: #6ee7b7;
-      --phase-audits: #dc2626;
-      --phase-audits-bg: #fee2e2;
-      --phase-audits-border: #fca5a5;
-      --phase-launch: #2563eb;
-      --phase-launch-bg: #dbeafe;
-      --phase-launch-border: #93c5fd;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+      --transition: 0.2s ease;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--color-bg);
-      color: var(--color-text);
+      background: var(--bg-primary);
+      color: var(--text-primary);
       line-height: 1.5;
       min-height: 100vh;
     }
 
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-secondary); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
     /* ===== Header ===== */
     .header {
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-      padding: 20px 32px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 18px 32px;
       position: sticky;
       top: 0;
       z-index: 20;
+      backdrop-filter: blur(12px);
     }
 
     .header-inner {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -71,14 +99,15 @@
     }
 
     .header h1 {
-      font-size: 1.375rem;
+      font-size: 1.25rem;
       font-weight: 700;
-      color: var(--color-text);
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
     }
 
     .header-subtitle {
       font-size: 0.8125rem;
-      color: var(--color-text-secondary);
+      color: var(--text-secondary);
       margin-top: 2px;
     }
 
@@ -93,60 +122,56 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 9px 18px;
+      padding: 8px 16px;
       border: 1px solid transparent;
       border-radius: var(--radius);
       font-size: 0.8125rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      transition: all var(--transition);
       font-family: inherit;
+      white-space: nowrap;
     }
 
     .btn:active { transform: scale(0.97); }
 
     .btn-primary {
-      background: var(--color-primary);
+      background: var(--accent);
       color: #fff;
+      border-color: var(--accent);
     }
 
-    .btn-primary:hover { background: #1d4ed8; }
+    .btn-primary:hover { background: var(--accent-hover); }
 
     .btn-outline {
-      background: var(--color-surface);
-      color: var(--color-text);
-      border-color: var(--color-border-dark);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-color: var(--border-secondary);
     }
 
-    .btn-outline:hover { background: var(--color-bg); }
-
-    .btn-outline.active {
-      background: var(--color-primary-light);
-      border-color: var(--color-primary);
-      color: var(--color-primary);
-    }
+    .btn-outline:hover { background: var(--bg-hover); border-color: var(--text-muted); }
 
     /* ===== Main Layout ===== */
     .main {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 28px 32px;
+      padding: 24px 32px;
     }
 
     /* ===== Controls Panel ===== */
     .controls-panel {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
       padding: 24px 28px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       box-shadow: var(--shadow);
     }
 
     .controls-row {
       display: flex;
       align-items: flex-end;
-      gap: 24px;
+      gap: 28px;
       flex-wrap: wrap;
     }
 
@@ -157,96 +182,149 @@
     }
 
     .control-group label {
-      font-size: 0.75rem;
+      font-size: 0.6875rem;
       font-weight: 600;
-      color: var(--color-text-secondary);
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
     }
 
     .control-group select,
     .control-group input[type="date"] {
       padding: 9px 14px;
-      border: 1px solid var(--color-border-dark);
+      border: 1px solid var(--border-secondary);
       border-radius: var(--radius);
       font-size: 0.875rem;
       font-family: inherit;
-      color: var(--color-text);
-      background: var(--color-surface);
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color var(--transition), box-shadow var(--transition);
       min-width: 200px;
+      appearance: none;
+    }
+
+    .control-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239a9cae' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
     }
 
     .control-group select:focus,
     .control-group input[type="date"]:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
     }
 
-    .control-group select {
+    .control-group input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.7);
       cursor: pointer;
     }
 
-    .duration-mode-group {
+    /* Timeline Mode Toggle */
+    .timeline-mode-group {
       display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      padding: 3px;
+    }
+
+    .mode-btn {
+      padding: 7px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-secondary);
+      transition: all var(--transition);
+      font-family: inherit;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(79, 110, 247, 0.3);
+    }
+
+    .mode-btn:hover:not(.active) {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    /* ===== Warning Banner ===== */
+    .past-warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-size: 0.8125rem;
+      color: var(--warning-text);
+      margin-bottom: 20px;
+      display: none;
       align-items: center;
       gap: 8px;
     }
 
-    .duration-mode-group label {
-      text-transform: none;
-      letter-spacing: normal;
-      font-size: 0.8125rem;
-      font-weight: 500;
-      color: var(--color-text);
-      cursor: pointer;
-    }
-
-    .duration-mode-group input[type="radio"] {
-      accent-color: var(--color-primary);
+    .past-warning.active {
+      display: flex;
     }
 
     /* ===== Summary Cards ===== */
     .summary-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
     }
 
     .summary-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 18px 22px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
       box-shadow: var(--shadow);
+      transition: border-color var(--transition);
+    }
+
+    .summary-card:hover {
+      border-color: var(--border-secondary);
     }
 
     .summary-card-value {
       font-size: 1.5rem;
       font-weight: 800;
-      color: var(--color-text);
-    }
-
-    .summary-card-label {
-      font-size: 0.75rem;
-      color: var(--color-text-secondary);
-      margin-top: 2px;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
     }
 
     .summary-card-value.highlight {
-      color: var(--color-primary);
+      color: var(--accent);
+    }
+
+    .summary-card-label {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
     }
 
     /* ===== View Toggle ===== */
     .view-toggle {
       display: flex;
       gap: 4px;
-      background: var(--color-bg);
+      background: var(--bg-tertiary);
       border-radius: var(--radius);
       padding: 3px;
-      border: 1px solid var(--color-border);
+      border: 1px solid var(--border-secondary);
     }
 
     .view-toggle-btn {
@@ -257,26 +335,26 @@
       font-weight: 600;
       cursor: pointer;
       background: transparent;
-      color: var(--color-text-secondary);
-      transition: background 0.15s, color 0.15s;
+      color: var(--text-secondary);
+      transition: all var(--transition);
       font-family: inherit;
     }
 
     .view-toggle-btn.active {
-      background: var(--color-surface);
-      color: var(--color-text);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
       box-shadow: var(--shadow);
     }
 
     .view-toggle-btn:hover:not(.active) {
-      color: var(--color-text);
+      color: var(--text-primary);
     }
 
-    /* ===== Timeline View ===== */
+    /* ===== Timeline Container ===== */
     .timeline-container {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow);
       overflow: hidden;
     }
@@ -286,20 +364,20 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 24px;
-      border-bottom: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--border-primary);
     }
 
     .timeline-header-bar h2 {
-      font-size: 1rem;
+      font-size: 0.9375rem;
       font-weight: 700;
+      color: var(--text-primary);
     }
 
     .timeline-scroll {
       overflow-x: auto;
-      padding: 0;
     }
 
-    /* Gantt-style timeline */
+    /* ===== Gantt Chart ===== */
     .gantt {
       min-width: 900px;
       position: relative;
@@ -307,24 +385,24 @@
 
     .gantt-header {
       display: flex;
-      border-bottom: 2px solid var(--color-border);
-      background: var(--color-bg);
+      border-bottom: 1px solid var(--border-primary);
+      background: var(--bg-tertiary);
       position: sticky;
       top: 0;
       z-index: 5;
     }
 
     .gantt-label-col {
-      min-width: 220px;
-      max-width: 220px;
+      min-width: 240px;
+      max-width: 240px;
       flex-shrink: 0;
-      padding: 10px 16px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
+      padding: 10px 18px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      border-right: 1px solid var(--color-border);
+      letter-spacing: 0.06em;
+      border-right: 1px solid var(--border-primary);
     }
 
     .gantt-timeline-col {
@@ -336,69 +414,63 @@
     .gantt-week {
       flex: 1;
       text-align: center;
-      padding: 10px 4px;
+      padding: 8px 4px;
       font-size: 0.6875rem;
       font-weight: 600;
-      color: var(--color-text-secondary);
-      border-right: 1px solid var(--color-border);
+      color: var(--text-secondary);
+      border-right: 1px solid var(--border-primary);
       min-width: 80px;
     }
 
-    .gantt-week:last-child {
-      border-right: none;
-    }
+    .gantt-week:last-child { border-right: none; }
 
     .gantt-week .week-month {
-      font-size: 0.625rem;
-      color: var(--color-text-muted);
-      margin-bottom: 2px;
+      font-size: 0.5625rem;
+      color: var(--text-muted);
+      margin-bottom: 1px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .gantt-body {
-      position: relative;
-    }
+    .gantt-body { position: relative; }
 
     .gantt-row {
       display: flex;
-      border-bottom: 1px solid var(--color-border);
-      min-height: 60px;
-      transition: background 0.1s;
+      border-bottom: 1px solid var(--border-primary);
+      min-height: 72px;
+      transition: background var(--transition);
     }
 
-    .gantt-row:hover {
-      background: rgba(37,99,235,0.015);
-    }
-
-    .gantt-row:last-child {
-      border-bottom: none;
-    }
+    .gantt-row:hover { background: rgba(79, 110, 247, 0.03); }
+    .gantt-row:last-child { border-bottom: none; }
 
     .gantt-row-label {
-      min-width: 220px;
-      max-width: 220px;
+      min-width: 240px;
+      max-width: 240px;
       flex-shrink: 0;
-      padding: 12px 16px;
-      border-right: 1px solid var(--color-border);
+      padding: 14px 18px;
+      border-right: 1px solid var(--border-primary);
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
 
-    .gantt-row-label .phase-label {
+    .gantt-row-label .phase-name {
       font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--color-text);
+      color: var(--text-primary);
     }
 
     .gantt-row-label .phase-dates {
       font-size: 0.6875rem;
-      color: var(--color-text-secondary);
-      margin-top: 2px;
+      color: var(--text-secondary);
+      margin-top: 3px;
     }
 
     .gantt-row-label .phase-duration {
       font-size: 0.625rem;
-      color: var(--color-text-muted);
+      color: var(--text-muted);
+      margin-top: 1px;
     }
 
     .gantt-row-timeline {
@@ -411,72 +483,86 @@
 
     .gantt-bar {
       position: absolute;
-      height: 36px;
+      height: 40px;
       border-radius: 6px;
       display: flex;
       align-items: center;
-      padding: 0 10px;
+      padding: 0 12px;
       font-size: 0.6875rem;
       font-weight: 600;
       cursor: pointer;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--transition), transform 0.15s;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
       z-index: 2;
+      border: 1px solid;
     }
 
     .gantt-bar:hover {
-      filter: brightness(0.95);
+      filter: brightness(1.15);
       transform: translateY(-1px);
       z-index: 3;
     }
 
-    .gantt-bar.phase-design {
-      background: var(--phase-design-bg);
-      border: 1px solid var(--phase-design-border);
-      color: var(--phase-design);
+    .gantt-bar.phase-1 {
+      background: var(--phase-1-bg);
+      border-color: var(--phase-1-border);
+      color: var(--phase-1);
     }
 
-    .gantt-bar.phase-dev {
-      background: var(--phase-dev-bg);
-      border: 1px solid var(--phase-dev-border);
-      color: var(--phase-dev);
+    .gantt-bar.phase-2 {
+      background: var(--phase-2-bg);
+      border-color: var(--phase-2-border);
+      color: var(--phase-2);
     }
 
-    .gantt-bar.phase-qa {
-      background: var(--phase-qa-bg);
-      border: 1px solid var(--phase-qa-border);
-      color: var(--phase-qa);
+    .gantt-bar.phase-3 {
+      background: var(--phase-3-bg);
+      border-color: var(--phase-3-border);
+      color: var(--phase-3);
     }
 
-    .gantt-bar.phase-audits {
-      background: var(--phase-audits-bg);
-      border: 1px solid var(--phase-audits-border);
-      color: var(--phase-audits);
+    .gantt-bar.phase-4 {
+      background: var(--phase-4-bg);
+      border-color: var(--phase-4-border);
+      color: var(--phase-4);
     }
 
-    .gantt-bar.phase-launch {
-      background: var(--phase-launch-bg);
-      border: 1px solid var(--phase-launch-border);
-      color: var(--phase-launch);
+    .gantt-bar.phase-5 {
+      background: var(--phase-5-bg);
+      border-color: var(--phase-5-border);
+      color: var(--phase-5);
     }
 
-    /* Milestone markers on bars */
-    .gantt-milestones {
+    .gantt-bar-content {
       display: flex;
-      gap: 6px;
+      align-items: center;
+      gap: 8px;
       overflow: hidden;
+    }
+
+    .gantt-bar-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .gantt-milestone-dots {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
     }
 
     .gantt-milestone-dot {
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      flex-shrink: 0;
+      background: currentColor;
+      opacity: 0.5;
     }
 
-    /* Grid lines behind bars */
+    /* Grid lines */
     .gantt-grid-lines {
       position: absolute;
       top: 0;
@@ -490,13 +576,11 @@
 
     .gantt-grid-line {
       flex: 1;
-      border-right: 1px solid var(--color-border);
+      border-right: 1px solid var(--border-primary);
       min-width: 80px;
     }
 
-    .gantt-grid-line:last-child {
-      border-right: none;
-    }
+    .gantt-grid-line:last-child { border-right: none; }
 
     /* Today marker */
     .gantt-today {
@@ -504,7 +588,7 @@
       top: 0;
       bottom: 0;
       width: 2px;
-      background: var(--color-primary);
+      background: var(--accent);
       z-index: 4;
       pointer-events: none;
     }
@@ -512,38 +596,68 @@
     .gantt-today::before {
       content: 'Today';
       position: absolute;
-      top: -22px;
+      top: -20px;
       left: 50%;
       transform: translateX(-50%);
       font-size: 0.5625rem;
       font-weight: 700;
-      color: var(--color-primary);
+      color: var(--accent);
       white-space: nowrap;
-      background: var(--color-primary-light);
+      background: var(--accent-subtle);
       padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--accent-border);
+    }
+
+    /* ===== Legend ===== */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 14px 24px;
+      border-top: 1px solid var(--border-primary);
+      background: var(--bg-tertiary);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
       border-radius: 3px;
     }
 
-    /* ===== Phase Detail Panel (on click) ===== */
+    /* ===== Detail Panel ===== */
     .detail-panel {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow-lg);
       padding: 24px 28px;
       margin-top: 16px;
       display: none;
+      animation: slideUp 0.2s ease;
     }
 
-    .detail-panel.active {
-      display: block;
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
+
+    .detail-panel.active { display: block; }
 
     .detail-panel-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .detail-panel-header h3 {
@@ -553,44 +667,56 @@
 
     .detail-panel-close {
       background: none;
-      border: none;
-      font-size: 1.25rem;
+      border: 1px solid var(--border-secondary);
+      font-size: 1.125rem;
       cursor: pointer;
-      color: var(--color-text-secondary);
-      padding: 4px 8px;
+      color: var(--text-secondary);
+      padding: 4px 10px;
       border-radius: var(--radius-sm);
+      transition: all var(--transition);
     }
 
     .detail-panel-close:hover {
-      background: var(--color-bg);
-      color: var(--color-text);
+      background: var(--bg-hover);
+      color: var(--text-primary);
     }
 
     .detail-meta {
       display: flex;
-      gap: 24px;
+      gap: 32px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-primary);
     }
 
     .detail-meta-item {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
 
     .detail-meta-item .meta-label {
-      font-size: 0.6875rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
     }
 
     .detail-meta-item .meta-value {
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--color-text);
+      color: var(--text-primary);
+    }
+
+    .milestones-heading {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
     }
 
     .milestones-list {
@@ -598,17 +724,15 @@
     }
 
     .milestones-list li {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--color-border);
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-primary);
       display: flex;
       align-items: flex-start;
-      gap: 10px;
+      gap: 12px;
       font-size: 0.8125rem;
     }
 
-    .milestones-list li:last-child {
-      border-bottom: none;
-    }
+    .milestones-list li:last-child { border-bottom: none; }
 
     .milestone-marker {
       width: 8px;
@@ -618,70 +742,55 @@
       flex-shrink: 0;
     }
 
-    .milestone-text {
-      color: var(--color-text);
-    }
+    .milestone-text { color: var(--text-primary); font-weight: 500; }
 
     .milestone-sub {
       font-size: 0.75rem;
-      color: var(--color-text-secondary);
+      color: var(--text-secondary);
       margin-top: 2px;
     }
 
     /* ===== Calendar View ===== */
-    .calendar-view {
-      display: none;
-    }
-
-    .calendar-view.active {
-      display: block;
-    }
-
-    .timeline-view {
-      display: none;
-    }
-
-    .timeline-view.active {
-      display: block;
-    }
+    .calendar-view { display: none; }
+    .calendar-view.active { display: block; }
+    .timeline-view { display: none; }
+    .timeline-view.active { display: block; }
 
     .calendar-nav {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 20px;
       margin-bottom: 16px;
     }
 
     .calendar-nav-btn {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border-dark);
-      border-radius: var(--radius-sm);
-      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      padding: 7px 14px;
       font-size: 0.8125rem;
       font-weight: 600;
       cursor: pointer;
-      color: var(--color-text);
-      transition: background 0.15s;
+      color: var(--text-primary);
+      transition: all var(--transition);
       font-family: inherit;
     }
 
-    .calendar-nav-btn:hover {
-      background: var(--color-bg);
-    }
+    .calendar-nav-btn:hover { background: var(--bg-hover); border-color: var(--text-muted); }
 
     .calendar-month-label {
       font-size: 1.0625rem;
       font-weight: 700;
-      color: var(--color-text);
+      color: var(--text-primary);
       min-width: 180px;
       text-align: center;
     }
 
     .calendar-grid-container {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow);
       overflow: hidden;
     }
@@ -689,8 +798,8 @@
     .calendar-grid-header {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      background: var(--color-bg);
-      border-bottom: 1px solid var(--color-border);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-primary);
     }
 
     .calendar-day-name {
@@ -698,9 +807,9 @@
       text-align: center;
       font-size: 0.6875rem;
       font-weight: 700;
-      color: var(--color-text-secondary);
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     .calendar-grid {
@@ -709,43 +818,35 @@
     }
 
     .calendar-cell {
-      min-height: 90px;
+      min-height: 100px;
       padding: 6px 8px;
-      border-right: 1px solid var(--color-border);
-      border-bottom: 1px solid var(--color-border);
+      border-right: 1px solid var(--border-primary);
+      border-bottom: 1px solid var(--border-primary);
       position: relative;
+      transition: background var(--transition);
     }
 
-    .calendar-cell:nth-child(7n) {
-      border-right: none;
-    }
+    .calendar-cell:nth-child(7n) { border-right: none; }
+    .calendar-cell.outside { background: var(--bg-primary); }
+    .calendar-cell.today { background: var(--accent-subtle); }
+    .calendar-cell.weekend { background: rgba(255,255,255,0.01); }
 
-    .calendar-cell.outside {
-      background: var(--color-bg);
-    }
-
-    .calendar-cell.today {
-      background: rgba(37,99,235,0.04);
-    }
-
-    .calendar-cell.weekend {
-      background: #fafafa;
+    .calendar-cell:hover:not(.outside) {
+      background: var(--bg-hover);
     }
 
     .calendar-date {
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--color-text-secondary);
+      color: var(--text-secondary);
       margin-bottom: 4px;
     }
 
-    .calendar-cell.outside .calendar-date {
-      color: var(--color-text-muted);
-    }
+    .calendar-cell.outside .calendar-date { color: var(--text-muted); }
 
     .calendar-cell.today .calendar-date {
-      color: var(--color-primary);
-      font-weight: 700;
+      color: var(--accent);
+      font-weight: 800;
     }
 
     .calendar-events {
@@ -763,66 +864,37 @@
       overflow: hidden;
       text-overflow: ellipsis;
       cursor: pointer;
-      transition: filter 0.1s;
+      transition: filter 0.15s;
     }
 
-    .calendar-event:hover {
-      filter: brightness(0.9);
-    }
+    .calendar-event:hover { filter: brightness(1.2); }
 
-    .calendar-event.phase-start {
-      border-left: 3px solid;
-    }
+    .calendar-event.phase-start { border-left: 3px solid; }
 
-    .calendar-event.ev-design {
-      background: var(--phase-design-bg);
-      color: var(--phase-design);
-      border-color: var(--phase-design);
-    }
-
-    .calendar-event.ev-dev {
-      background: var(--phase-dev-bg);
-      color: var(--phase-dev);
-      border-color: var(--phase-dev);
-    }
-
-    .calendar-event.ev-qa {
-      background: var(--phase-qa-bg);
-      color: var(--phase-qa);
-      border-color: var(--phase-qa);
-    }
-
-    .calendar-event.ev-audits {
-      background: var(--phase-audits-bg);
-      color: var(--phase-audits);
-      border-color: var(--phase-audits);
-    }
-
-    .calendar-event.ev-launch {
-      background: var(--phase-launch-bg);
-      color: var(--phase-launch);
-      border-color: var(--phase-launch);
-    }
+    .calendar-event.ev-1 { background: var(--phase-1-bg); color: var(--phase-1); border-color: var(--phase-1); }
+    .calendar-event.ev-2 { background: var(--phase-2-bg); color: var(--phase-2); border-color: var(--phase-2); }
+    .calendar-event.ev-3 { background: var(--phase-3-bg); color: var(--phase-3); border-color: var(--phase-3); }
+    .calendar-event.ev-4 { background: var(--phase-4-bg); color: var(--phase-4); border-color: var(--phase-4); }
+    .calendar-event.ev-5 { background: var(--phase-5-bg); color: var(--phase-5); border-color: var(--phase-5); }
 
     /* ===== Tooltip ===== */
     .tooltip {
       display: none;
       position: fixed;
-      background: var(--color-text);
-      color: #fff;
-      padding: 12px 16px;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      padding: 14px 18px;
       border-radius: var(--radius);
+      border: 1px solid var(--border-secondary);
       font-size: 0.75rem;
-      max-width: 300px;
+      max-width: 320px;
       z-index: 100;
       pointer-events: none;
       box-shadow: var(--shadow-lg);
       line-height: 1.5;
     }
 
-    .tooltip.active {
-      display: block;
-    }
+    .tooltip.active { display: block; }
 
     .tooltip-title {
       font-weight: 700;
@@ -831,8 +903,8 @@
     }
 
     .tooltip-dates {
-      color: #d1d5db;
-      margin-bottom: 6px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
     }
 
     .tooltip-milestones {
@@ -844,6 +916,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      color: var(--text-secondary);
     }
 
     .tooltip-milestones li::before {
@@ -851,32 +924,28 @@
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: #9ca3af;
+      background: var(--text-muted);
       flex-shrink: 0;
     }
 
-    /* ===== Export Panel ===== */
-    .export-menu {
-      position: relative;
-    }
+    /* ===== Export ===== */
+    .export-menu { position: relative; }
 
     .export-dropdown {
       display: none;
       position: absolute;
-      top: calc(100% + 4px);
+      top: calc(100% + 6px);
       right: 0;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-secondary);
       border-radius: var(--radius);
       box-shadow: var(--shadow-lg);
-      min-width: 160px;
+      min-width: 170px;
       z-index: 30;
       overflow: hidden;
     }
 
-    .export-dropdown.active {
-      display: block;
-    }
+    .export-dropdown.active { display: block; }
 
     .export-dropdown button {
       display: block;
@@ -887,77 +956,37 @@
       text-align: left;
       font-size: 0.8125rem;
       font-family: inherit;
-      color: var(--color-text);
+      color: var(--text-primary);
       cursor: pointer;
+      transition: background var(--transition);
     }
 
-    .export-dropdown button:hover {
-      background: var(--color-bg);
-    }
-
-    /* ===== Past date warning ===== */
-    .past-warning {
-      background: #fef3c7;
-      border: 1px solid #fcd34d;
-      border-radius: var(--radius);
-      padding: 10px 16px;
-      font-size: 0.8125rem;
-      color: #92400e;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .past-warning.active {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* ===== Legend ===== */
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      padding: 12px 24px;
-      border-top: 1px solid var(--color-border);
-      background: var(--color-bg);
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.6875rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
-    }
-
-    .legend-swatch {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
+    .export-dropdown button:hover { background: var(--bg-hover); }
 
     /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+      .summary-row { grid-template-columns: repeat(3, 1fr); }
+    }
+
     @media (max-width: 768px) {
-      .header { padding: 16px 20px; }
+      .header { padding: 14px 18px; }
       .header-inner {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
       }
-      .main { padding: 20px 16px; }
+      .main { padding: 16px; }
       .controls-row { flex-direction: column; gap: 16px; }
       .control-group select,
       .control-group input[type="date"] { min-width: unset; width: 100%; }
       .summary-row { grid-template-columns: 1fr 1fr; }
-      .calendar-cell { min-height: 60px; }
+      .calendar-cell { min-height: 70px; }
     }
 
     @media print {
       .header { position: static; }
       .controls-panel, .header-actions { display: none; }
-      .gantt-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      body { background: #fff; color: #000; }
     }
   </style>
 </head>
@@ -979,7 +1008,10 @@
           <button class="view-toggle-btn" data-view="calendar" onclick="setView('calendar')">Calendar</button>
         </div>
         <div class="export-menu">
-          <button class="btn btn-outline" onclick="toggleExport()">Export</button>
+          <button class="btn btn-outline" onclick="toggleExport()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export
+          </button>
           <div class="export-dropdown" id="exportDropdown">
             <button onclick="exportCSV()">Export CSV</button>
             <button onclick="exportJSON()">Export JSON</button>
@@ -1008,11 +1040,10 @@
           <input type="date" id="startDate" onchange="recalculate()">
         </div>
         <div class="control-group">
-          <label>Duration Estimate</label>
-          <div class="duration-mode-group" style="padding-top: 4px;">
-            <label><input type="radio" name="durationMode" value="min" onchange="recalculate()"> Min</label>
-            <label><input type="radio" name="durationMode" value="mid" checked onchange="recalculate()"> Mid</label>
-            <label><input type="radio" name="durationMode" value="max" onchange="recalculate()"> Max</label>
+          <label>Timeline Mode</label>
+          <div class="timeline-mode-group">
+            <button class="mode-btn active" data-mode="3month" onclick="setTimelineMode('3month')">3-Month</button>
+            <button class="mode-btn" data-mode="4month" onclick="setTimelineMode('4month')">4-Month</button>
           </div>
         </div>
       </div>
@@ -1032,6 +1063,7 @@
       <div class="timeline-container">
         <div class="timeline-header-bar">
           <h2>Project Timeline</h2>
+          <span id="timelineModeLabel" style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;"></span>
         </div>
         <div class="timeline-scroll" id="timelineScroll">
           <div class="gantt" id="ganttChart"></div>
@@ -1059,6 +1091,7 @@
         </div>
         <div class="calendar-grid" id="calendarGrid"></div>
       </div>
+      <div class="legend" id="calendarLegend" style="margin-top: 12px; background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg);"></div>
     </div>
 
     <!-- Phase Detail Panel -->
@@ -1068,14 +1101,17 @@
 
   <script>
     /* ================================================================
-       CONFIGURATION
-       ================================================================ */
+       CENTRALIZED CONFIGURATION
+       ================================================================
 
-    /**
-     * Centralized duration configuration.
-     * All durations are in business days.
-     * 1 week = 5 business days.
-     */
+       All durations are in business days (1 week = 5 business days).
+
+       Rules:
+       - 3-Month Mode → uses "min" values (lower estimates)
+       - 4-Month Mode → uses "max" values (higher estimates)
+       - No hardcoded durations in UI code
+    */
+
     const PHASE_DURATIONS = {
       template: {
         designPlanning:      { min: 5,  max: 10 },  // 1-2 weeks
@@ -1106,10 +1142,12 @@
     const PHASES = [
       {
         key: 'designPlanning',
-        name: 'Design & Planning',
-        cssClass: 'phase-design',
-        eventClass: 'ev-design',
-        color: '#7c3aed',
+        name: 'Phase 1: Design & Planning',
+        shortName: 'Design & Planning',
+        cssClass: 'phase-1',
+        eventClass: 'ev-1',
+        color: 'var(--phase-1)',
+        colorHex: '#8b5cf6',
         milestones: [
           { label: 'Internal Review' },
           { label: 'Partner Review' },
@@ -1118,10 +1156,12 @@
       },
       {
         key: 'developmentContent',
-        name: 'Development & Content Generation',
-        cssClass: 'phase-dev',
-        eventClass: 'ev-dev',
-        color: '#d97706',
+        name: 'Phase 2: Development & Content',
+        shortName: 'Dev & Content',
+        cssClass: 'phase-2',
+        eventClass: 'ev-2',
+        color: 'var(--phase-2)',
+        colorHex: '#f59e0b',
         milestones: [
           { label: 'Secondary Page Development' },
           { label: 'Content Document Creation' },
@@ -1131,10 +1171,12 @@
       },
       {
         key: 'qaContentUpload',
-        name: 'QA & Content Upload',
-        cssClass: 'phase-qa',
-        eventClass: 'ev-qa',
-        color: '#059669',
+        name: 'Phase 3: QA & Content Upload',
+        shortName: 'QA & Upload',
+        cssClass: 'phase-3',
+        eventClass: 'ev-3',
+        color: 'var(--phase-3)',
+        colorHex: '#10b981',
         milestones: [
           { label: 'Development QA Testing' },
           { label: 'Content Document Handoff' },
@@ -1143,10 +1185,12 @@
       },
       {
         key: 'audits',
-        name: 'Audits',
-        cssClass: 'phase-audits',
-        eventClass: 'ev-audits',
-        color: '#dc2626',
+        name: 'Phase 4: Audits',
+        shortName: 'Audits',
+        cssClass: 'phase-4',
+        eventClass: 'ev-4',
+        color: 'var(--phase-4)',
+        colorHex: '#ef4444',
         milestones: [
           { label: 'Internal Audits' },
           { label: 'Internal Revisions' },
@@ -1156,10 +1200,12 @@
       },
       {
         key: 'preLaunchLaunch',
-        name: 'Pre-Launch & Launch',
-        cssClass: 'phase-launch',
-        eventClass: 'ev-launch',
-        color: '#2563eb',
+        name: 'Phase 5: Pre-Launch & Launch',
+        shortName: 'Launch',
+        cssClass: 'phase-5',
+        eventClass: 'ev-5',
+        color: 'var(--phase-5)',
+        colorHex: '#3b82f6',
         milestones: [
           { label: 'Pre-Launch' },
           { label: 'Launch' },
@@ -1173,18 +1219,21 @@
        ================================================================ */
 
     let currentView = 'timeline';
-    let calendarMonth = null; // Date object for displayed month
+    let timelineMode = '3month'; // '3month' or '4month'
+    let calendarMonth = null;
     let calculatedPhases = [];
     let projectStartDate = null;
     let projectEndDate = null;
 
     /* ================================================================
        BUSINESS DAY LOGIC
-       ================================================================ */
+       ================================================================
 
-    /**
-     * Check if a date falls on a weekend.
-     */
+       Weekends (Saturday, Sunday) are excluded from calculations.
+       Properly handles month rollovers, year rollovers, and leap years
+       via native Date arithmetic.
+    */
+
     function isWeekend(date) {
       const day = date.getDay();
       return day === 0 || day === 6;
@@ -1192,7 +1241,7 @@
 
     /**
      * Add N business days to a date, returning a new Date.
-     * Skips weekends.
+     * Start date is day 0; the returned date is the Nth business day after.
      */
     function addBusinessDays(startDate, numDays) {
       const result = new Date(startDate);
@@ -1221,37 +1270,22 @@
       return count;
     }
 
-    /**
-     * Count total calendar days between two dates.
-     */
     function calendarDaysBetween(start, end) {
       return Math.round((end - start) / (1000 * 60 * 60 * 24));
     }
 
-    /**
-     * Format a date as "Mon DD, YYYY".
-     */
     function formatDate(date) {
       return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        month: 'short', day: 'numeric', year: 'numeric'
       });
     }
 
-    /**
-     * Format a date as "Mon DD".
-     */
     function formatDateShort(date) {
       return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
+        month: 'short', day: 'numeric'
       });
     }
 
-    /**
-     * Get the Monday of the week containing the given date.
-     */
     function getWeekStart(date) {
       const d = new Date(date);
       const day = d.getDay();
@@ -1262,19 +1296,16 @@
     }
 
     /**
-     * Resolve duration based on selected mode.
+     * Resolve duration based on timeline mode.
+     * 3-Month → min (lower estimate)
+     * 4-Month → max (higher estimate)
      */
     function resolveDuration(durationConfig, mode) {
-      if (mode === 'min') return durationConfig.min;
-      if (mode === 'max') return durationConfig.max;
-      return Math.round((durationConfig.min + durationConfig.max) / 2);
+      return mode === '3month' ? durationConfig.min : durationConfig.max;
     }
 
-    /**
-     * Format business days as a readable duration label.
-     */
     function formatDuration(businessDays) {
-      if (businessDays <= 5) {
+      if (businessDays < 5) {
         return businessDays === 1 ? '1 day' : businessDays + ' days';
       }
       const weeks = businessDays / 5;
@@ -1284,22 +1315,13 @@
       return weeks.toFixed(1) + ' weeks';
     }
 
-    /**
-     * Format the duration range label for a phase.
-     */
     function formatDurationRange(durationConfig) {
-      const minWeeks = durationConfig.min / 5;
-      const maxWeeks = durationConfig.max / 5;
+      const minLabel = formatDuration(durationConfig.min);
+      const maxLabel = formatDuration(durationConfig.max);
       if (durationConfig.min === durationConfig.max) {
-        if (durationConfig.min < 5) {
-          return durationConfig.min === 1 ? '~1 day' : '~' + durationConfig.min + ' days';
-        }
-        return '~' + minWeeks + (minWeeks === 1 ? ' week' : ' weeks');
+        return '~' + minLabel;
       }
-      if (durationConfig.min < 5 && durationConfig.max < 5) {
-        return durationConfig.min + '-' + durationConfig.max + ' days';
-      }
-      return minWeeks + '-' + maxWeeks + ' weeks';
+      return minLabel + ' \u2013 ' + maxLabel;
     }
 
     /* ================================================================
@@ -1309,13 +1331,12 @@
     function recalculate() {
       const websiteType = document.getElementById('websiteType').value;
       const startDateInput = document.getElementById('startDate').value;
-      const durationMode = document.querySelector('input[name="durationMode"]:checked').value;
 
       if (!startDateInput) return;
 
       const startDate = new Date(startDateInput + 'T00:00:00');
 
-      // Adjust start to next business day if it falls on a weekend
+      // Adjust start to next business day if on weekend
       let adjustedStart = new Date(startDate);
       while (isWeekend(adjustedStart)) {
         adjustedStart.setDate(adjustedStart.getDate() + 1);
@@ -1329,21 +1350,20 @@
 
       PHASES.forEach(phase => {
         const durationConfig = durations[phase.key];
-        const businessDays = resolveDuration(durationConfig, durationMode);
+        const businessDays = resolveDuration(durationConfig, timelineMode);
         const endDate = addBusinessDays(currentStart, businessDays);
 
         calculatedPhases.push({
           ...phase,
           startDate: new Date(currentStart),
           endDate: new Date(endDate),
-          businessDays: businessDays,
+          businessDays,
           durationLabel: formatDuration(businessDays),
           rangeLabel: formatDurationRange(durationConfig)
         });
 
-        // Next phase starts the next business day after this one ends
+        // Next phase starts the next business day after end
         currentStart = new Date(endDate);
-        // endDate is already a business day, so next start is the next business day
         currentStart.setDate(currentStart.getDate() + 1);
         while (isWeekend(currentStart)) {
           currentStart.setDate(currentStart.getDate() + 1);
@@ -1356,22 +1376,35 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const warningEl = document.getElementById('pastWarning');
-      if (startDate < today) {
-        warningEl.classList.add('active');
-      } else {
-        warningEl.classList.remove('active');
-      }
+      warningEl.classList.toggle('active', startDate < today);
 
-      // Set calendar month to start date's month
+      // Set calendar month to start date's month on first calc
       if (!calendarMonth) {
         calendarMonth = new Date(projectStartDate.getFullYear(), projectStartDate.getMonth(), 1);
       }
+
+      // Update mode label
+      const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
+      document.getElementById('timelineModeLabel').textContent =
+        typeLabels[websiteType] + ' \u00B7 ' + (timelineMode === '3month' ? '3-Month' : '4-Month') + ' Timeline';
 
       renderSummary();
       renderTimeline();
       renderCalendar();
       renderLegend();
       closeDetailPanel();
+    }
+
+    /* ================================================================
+       TIMELINE MODE TOGGLE
+       ================================================================ */
+
+    function setTimelineMode(mode) {
+      timelineMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      recalculate();
     }
 
     /* ================================================================
@@ -1423,7 +1456,6 @@
         return;
       }
 
-      // Generate weeks for the header
       const timelineStart = getWeekStart(projectStartDate);
       const timelineEndPadded = new Date(projectEndDate);
       timelineEndPadded.setDate(timelineEndPadded.getDate() + 7);
@@ -1438,7 +1470,7 @@
 
       const totalTimelineMs = timelineEnd.getTime() + 7 * 86400000 - timelineStart.getTime();
 
-      // Header
+      // Header weeks
       const headerWeeks = weeks.map(w => {
         const monthName = w.toLocaleDateString('en-US', { month: 'short' });
         const day = w.getDate();
@@ -1464,16 +1496,16 @@
       const rows = calculatedPhases.map(phase => {
         const barStart = ((phase.startDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
         const barEnd = ((phase.endDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
-        const barWidth = Math.max(barEnd - barStart, 1);
+        const barWidth = Math.max(barEnd - barStart, 1.5);
 
         const milestoneDots = phase.milestones.map(m =>
-          `<span class="gantt-milestone-dot" style="background: currentColor; opacity: 0.5;" title="${escapeAttr(m.label)}"></span>`
+          `<span class="gantt-milestone-dot" title="${esc(m.label)}"></span>`
         ).join('');
 
         return `<div class="gantt-row">
           <div class="gantt-row-label">
-            <div class="phase-label">${phase.name}</div>
-            <div class="phase-dates">${formatDateShort(phase.startDate)} - ${formatDateShort(phase.endDate)}</div>
+            <div class="phase-name">${phase.name}</div>
+            <div class="phase-dates">${formatDateShort(phase.startDate)} \u2013 ${formatDateShort(phase.endDate)}</div>
             <div class="phase-duration">${phase.durationLabel} (${phase.rangeLabel})</div>
           </div>
           <div class="gantt-row-timeline">
@@ -1486,7 +1518,10 @@
                  onmousemove="moveTooltip(event)"
                  onmouseleave="hideTooltip()"
                  onclick="showPhaseDetail('${phase.key}')">
-              <div class="gantt-milestones">${milestoneDots}</div>
+              <div class="gantt-bar-content">
+                <span class="gantt-bar-label">${phase.shortName}</span>
+                <div class="gantt-milestone-dots">${milestoneDots}</div>
+              </div>
             </div>
           </div>
         </div>`;
@@ -1514,15 +1549,12 @@
       document.getElementById('calendarMonthLabel').textContent =
         calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-      // First day of month
       const firstDay = new Date(year, month, 1);
       const lastDay = new Date(year, month + 1, 0);
 
-      // Start grid from Sunday before first day
       const gridStart = new Date(firstDay);
       gridStart.setDate(gridStart.getDate() - firstDay.getDay());
 
-      // End grid on Saturday after last day
       const gridEnd = new Date(lastDay);
       gridEnd.setDate(gridEnd.getDate() + (6 - lastDay.getDay()));
 
@@ -1530,40 +1562,39 @@
       today.setHours(0, 0, 0, 0);
 
       let html = '';
-      const cursor = new Date(gridStart);
+      const cur = new Date(gridStart);
 
-      while (cursor <= gridEnd) {
-        const isOutside = cursor.getMonth() !== month;
-        const isToday = cursor.getTime() === today.getTime();
-        const isWeekendDay = isWeekend(cursor);
+      while (cur <= gridEnd) {
+        const isOutside = cur.getMonth() !== month;
+        const isToday = cur.getTime() === today.getTime();
+        const isWknd = isWeekend(cur);
 
-        let classes = 'calendar-cell';
-        if (isOutside) classes += ' outside';
-        if (isToday) classes += ' today';
-        if (isWeekendDay) classes += ' weekend';
+        let cls = 'calendar-cell';
+        if (isOutside) cls += ' outside';
+        if (isToday) cls += ' today';
+        if (isWknd) cls += ' weekend';
 
-        // Find events for this date
-        const events = getCalendarEvents(cursor);
+        const events = getCalendarEvents(cur);
         const eventsHtml = events.map(ev =>
           `<div class="calendar-event ${ev.isStart ? 'phase-start' : ''} ${ev.eventClass}"
                 onclick="showPhaseDetail('${ev.phaseKey}')"
-                title="${escapeAttr(ev.text)}">${ev.text}</div>`
+                title="${esc(ev.text)}">${ev.text}</div>`
         ).join('');
 
-        html += `<div class="${classes}">
-          <div class="calendar-date">${cursor.getDate()}</div>
+        html += `<div class="${cls}">
+          <div class="calendar-date">${cur.getDate()}</div>
           <div class="calendar-events">${eventsHtml}</div>
         </div>`;
 
-        cursor.setDate(cursor.getDate() + 1);
+        cur.setDate(cur.getDate() + 1);
       }
 
       document.getElementById('calendarGrid').innerHTML = html;
+
+      // Calendar legend
+      renderCalendarLegend();
     }
 
-    /**
-     * Get calendar events for a specific date.
-     */
     function getCalendarEvents(date) {
       const events = [];
       const dateTime = date.getTime();
@@ -1578,7 +1609,7 @@
           events.push({
             phaseKey: phase.key,
             eventClass: phase.eventClass,
-            text: phase.name + ' Start',
+            text: phase.shortName + ' Start',
             isStart: true
           });
         }
@@ -1587,12 +1618,12 @@
           events.push({
             phaseKey: phase.key,
             eventClass: phase.eventClass,
-            text: phase.name + ' End',
+            text: phase.shortName + ' End',
             isStart: false
           });
         }
 
-        // Show milestones distributed across the phase duration
+        // Show milestones distributed evenly within the phase
         if (dateTime > startTime.getTime() && dateTime < endTime.getTime() && !isWeekend(date)) {
           const phaseDays = countBusinessDays(startTime, endTime);
           const dayIndex = countBusinessDays(startTime, date);
@@ -1619,13 +1650,24 @@
        ================================================================ */
 
     function renderLegend() {
-      const container = document.getElementById('legend');
-      container.innerHTML = PHASES.map(phase =>
+      const html = PHASES.map(phase =>
         `<div class="legend-item">
-          <div class="legend-swatch" style="background: ${phase.color};"></div>
-          ${phase.name}
+          <div class="legend-swatch" style="background: ${phase.colorHex};"></div>
+          ${phase.shortName}
         </div>`
       ).join('');
+
+      document.getElementById('legend').innerHTML = html;
+    }
+
+    function renderCalendarLegend() {
+      const html = PHASES.map(phase =>
+        `<div class="legend-item">
+          <div class="legend-swatch" style="background: ${phase.colorHex};"></div>
+          ${phase.shortName}
+        </div>`
+      ).join('');
+      document.getElementById('calendarLegend').innerHTML = html;
     }
 
     /* ================================================================
@@ -1639,7 +1681,7 @@
       const milestonesHtml = phase.milestones.map(m => {
         const subHtml = m.sub ? `<div class="milestone-sub">${m.sub}</div>` : '';
         return `<li>
-          <span class="milestone-marker" style="background: ${phase.color};"></span>
+          <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
           <div>
             <div class="milestone-text">${m.label}</div>
             ${subHtml}
@@ -1650,7 +1692,7 @@
       const panel = document.getElementById('detailPanel');
       panel.innerHTML = `
         <div class="detail-panel-header">
-          <h3 style="color: ${phase.color};">${phase.name}</h3>
+          <h3 style="color: ${phase.colorHex};">${phase.name}</h3>
           <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
         </div>
         <div class="detail-meta">
@@ -1675,7 +1717,7 @@
             <span class="meta-value">${phase.businessDays}</span>
           </div>
         </div>
-        <h4 style="font-size: 0.8125rem; font-weight: 700; margin-bottom: 8px; color: var(--color-text-secondary);">MILESTONES</h4>
+        <div class="milestones-heading">Milestones</div>
         <ul class="milestones-list">${milestonesHtml}</ul>
       `;
       panel.classList.add('active');
@@ -1700,8 +1742,8 @@
 
       const tooltip = document.getElementById('tooltip');
       tooltip.innerHTML = `
-        <div class="tooltip-title">${phase.name}</div>
-        <div class="tooltip-dates">${formatDate(phase.startDate)} - ${formatDate(phase.endDate)} (${phase.durationLabel})</div>
+        <div class="tooltip-title" style="color: ${phase.colorHex};">${phase.name}</div>
+        <div class="tooltip-dates">${formatDate(phase.startDate)} \u2013 ${formatDate(phase.endDate)} (${phase.durationLabel})</div>
         <ul class="tooltip-milestones">${milestonesHtml}</ul>
       `;
       tooltip.classList.add('active');
@@ -1711,14 +1753,14 @@
     function moveTooltip(event) {
       const tooltip = document.getElementById('tooltip');
       const rect = tooltip.getBoundingClientRect();
-      let x = event.clientX + 12;
-      let y = event.clientY + 12;
+      let x = event.clientX + 14;
+      let y = event.clientY + 14;
 
-      if (x + rect.width > window.innerWidth - 12) {
-        x = event.clientX - rect.width - 12;
+      if (x + rect.width > window.innerWidth - 16) {
+        x = event.clientX - rect.width - 14;
       }
-      if (y + rect.height > window.innerHeight - 12) {
-        y = event.clientY - rect.height - 12;
+      if (y + rect.height > window.innerHeight - 16) {
+        y = event.clientY - rect.height - 14;
       }
 
       tooltip.style.left = x + 'px';
@@ -1761,11 +1803,9 @@
        ================================================================ */
 
     function toggleExport() {
-      const dropdown = document.getElementById('exportDropdown');
-      dropdown.classList.toggle('active');
+      document.getElementById('exportDropdown').classList.toggle('active');
     }
 
-    // Close export dropdown on outside click
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.export-menu')) {
         document.getElementById('exportDropdown').classList.remove('active');
@@ -1777,6 +1817,7 @@
 
       const websiteType = document.getElementById('websiteType').value;
       const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
+      const modeLabel = timelineMode === '3month' ? '3-Month Timeline' : '4-Month Timeline';
 
       let csv = 'Phase,Start Date,End Date,Business Days,Duration,Milestones\n';
       calculatedPhases.forEach(phase => {
@@ -1785,10 +1826,12 @@
       });
 
       csv += `\nWebsite Type:,"${typeLabels[websiteType]}"\n`;
+      csv += `Timeline Mode:,"${modeLabel}"\n`;
       csv += `Project Start:,"${formatDate(projectStartDate)}"\n`;
       csv += `Project End:,"${formatDate(projectEndDate)}"\n`;
+      csv += `\nNote:,"Business days exclude weekends (Saturday & Sunday)"\n`;
 
-      downloadFile(csv, 'timeline-export.csv', 'text/csv');
+      downloadFile(csv, 'website-timeline-export.csv', 'text/csv');
       document.getElementById('exportDropdown').classList.remove('active');
     }
 
@@ -1800,14 +1843,17 @@
 
       const data = {
         websiteType: typeLabels[websiteType],
+        timelineMode: timelineMode === '3month' ? '3-Month Timeline' : '4-Month Timeline',
         projectStart: formatDate(projectStartDate),
         projectEnd: formatDate(projectEndDate),
+        note: 'Business days exclude weekends (Saturday & Sunday)',
         phases: calculatedPhases.map(phase => ({
           name: phase.name,
           startDate: formatDate(phase.startDate),
           endDate: formatDate(phase.endDate),
           businessDays: phase.businessDays,
           duration: phase.durationLabel,
+          durationRange: phase.rangeLabel,
           milestones: phase.milestones.map(m => ({
             label: m.label,
             ...(m.sub ? { detail: m.sub } : {})
@@ -1815,7 +1861,7 @@
         }))
       };
 
-      downloadFile(JSON.stringify(data, null, 2), 'timeline-export.json', 'application/json');
+      downloadFile(JSON.stringify(data, null, 2), 'website-timeline-export.json', 'application/json');
       document.getElementById('exportDropdown').classList.remove('active');
     }
 
@@ -1835,7 +1881,7 @@
        UTILITY
        ================================================================ */
 
-    function escapeAttr(str) {
+    function esc(str) {
       return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
     }
 
@@ -1844,17 +1890,14 @@
        ================================================================ */
 
     (function init() {
-      // Set default start date to today
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');
       const dd = String(today.getDate()).padStart(2, '0');
       document.getElementById('startDate').value = `${yyyy}-${mm}-${dd}`;
 
-      // Set calendar month
       calendarMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      // Initial calculation
       recalculate();
     })();
   </script>
