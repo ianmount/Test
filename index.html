@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project Progress Dashboard</title>
+  <title>Website Timeline &amp; Milestone Calculator</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -15,15 +15,33 @@
       --color-bg: #f3f4f6;
       --color-surface: #ffffff;
       --color-primary: #2563eb;
-      --color-primary-hover: #1d4ed8;
+      --color-primary-light: #dbeafe;
       --color-text: #1f2937;
       --color-text-secondary: #6b7280;
+      --color-text-muted: #9ca3af;
       --color-border: #e5e7eb;
-      --color-danger: #ef4444;
-      --color-danger-hover: #dc2626;
+      --color-border-dark: #d1d5db;
       --radius: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      --radius-sm: 4px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.03);
+
+      --phase-design: #7c3aed;
+      --phase-design-bg: #ede9fe;
+      --phase-design-border: #c4b5fd;
+      --phase-dev: #d97706;
+      --phase-dev-bg: #fef3c7;
+      --phase-dev-border: #fcd34d;
+      --phase-qa: #059669;
+      --phase-qa-bg: #d1fae5;
+      --phase-qa-border: #6ee7b7;
+      --phase-audits: #dc2626;
+      --phase-audits-bg: #fee2e2;
+      --phase-audits-border: #fca5a5;
+      --phase-launch: #2563eb;
+      --phase-launch-bg: #dbeafe;
+      --phase-launch-border: #93c5fd;
     }
 
     body {
@@ -34,888 +52,1811 @@
       min-height: 100vh;
     }
 
-    /* Header */
+    /* ===== Header ===== */
     .header {
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
       padding: 20px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 10;
     }
 
     .header h1 {
-      font-size: 1.5rem;
+      font-size: 1.375rem;
       font-weight: 700;
       color: var(--color-text);
     }
 
     .header-subtitle {
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       color: var(--color-text-secondary);
       margin-top: 2px;
     }
 
-    /* Buttons */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ===== Buttons ===== */
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 10px 20px;
-      border: none;
+      padding: 9px 18px;
+      border: 1px solid transparent;
       border-radius: var(--radius);
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      font-family: inherit;
     }
 
-    .btn:active {
-      transform: scale(0.97);
-    }
+    .btn:active { transform: scale(0.97); }
 
     .btn-primary {
       background: var(--color-primary);
       color: #fff;
     }
 
-    .btn-primary:hover {
-      background: var(--color-primary-hover);
-    }
+    .btn-primary:hover { background: #1d4ed8; }
 
-    .btn-danger {
-      background: var(--color-danger);
-      color: #fff;
-      padding: 6px 12px;
-      font-size: 0.75rem;
-    }
-
-    .btn-danger:hover {
-      background: var(--color-danger-hover);
-    }
-
-    .btn-secondary {
-      background: var(--color-border);
+    .btn-outline {
+      background: var(--color-surface);
       color: var(--color-text);
+      border-color: var(--color-border-dark);
     }
 
-    .btn-secondary:hover {
-      background: #d1d5db;
+    .btn-outline:hover { background: var(--color-bg); }
+
+    .btn-outline.active {
+      background: var(--color-primary-light);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
 
-    /* Main content */
+    /* ===== Main Layout ===== */
     .main {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 32px;
+      padding: 28px 32px;
     }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 80px 20px;
-      color: var(--color-text-secondary);
-    }
-
-    .empty-state svg {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 16px;
-      opacity: 0.4;
-    }
-
-    .empty-state p {
-      font-size: 1.125rem;
-      margin-bottom: 8px;
-    }
-
-    .empty-state small {
-      font-size: 0.875rem;
-    }
-
-    /* Project card */
-    .project-card {
+    /* ===== Controls Panel ===== */
+    .controls-panel {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 20px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
       box-shadow: var(--shadow);
     }
 
-    .project-header {
+    .controls-row {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 20px;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
     }
 
-    .project-name {
-      font-size: 1.125rem;
-      font-weight: 700;
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .project-meta {
-      font-size: 0.8rem;
-      color: var(--color-text-secondary);
-      margin-top: 2px;
-    }
-
-    .project-overall {
-      text-align: right;
-    }
-
-    .project-overall-pct {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--color-primary);
-    }
-
-    .project-overall-label {
+    .control-group label {
       font-size: 0.75rem;
+      font-weight: 600;
       color: var(--color-text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
     }
 
-    /* Overall progress bar */
-    .overall-bar-track {
-      width: 100%;
-      height: 8px;
-      background: var(--color-border);
-      border-radius: 4px;
-      margin-bottom: 24px;
-      overflow: hidden;
-    }
-
-    .overall-bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: var(--color-primary);
-      transition: width 0.3s ease;
-    }
-
-    /* Phases grid */
-    .phases-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-
-    .phase-item {
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 14px;
-    }
-
-    .phase-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .phase-name {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--color-text);
-    }
-
-    .phase-pct {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--color-primary);
-    }
-
-    .phase-bar-track {
-      width: 100%;
-      height: 6px;
-      background: var(--color-border);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-
-    .phase-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.3s ease;
-    }
-
-    .phase-bar-fill.design { background: #8b5cf6; }
-    .phase-bar-fill.content { background: #f59e0b; }
-    .phase-bar-fill.qa { background: #10b981; }
-    .phase-bar-fill.audits { background: #ef4444; }
-    .phase-bar-fill.launch { background: #3b82f6; }
-
-    .phase-slider {
-      width: 100%;
-      cursor: pointer;
-      accent-color: var(--color-primary);
-    }
-
-    /* Modal overlay */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal {
-      background: var(--color-surface);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-      padding: 32px;
-      width: 100%;
-      max-width: 480px;
-      margin: 16px;
-    }
-
-    .modal h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--color-text);
-    }
-
-    .form-group input[type="text"],
-    .form-group input[type="date"],
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--color-border);
+    .control-group select,
+    .control-group input[type="date"] {
+      padding: 9px 14px;
+      border: 1px solid var(--color-border-dark);
       border-radius: var(--radius);
       font-size: 0.875rem;
       font-family: inherit;
       color: var(--color-text);
+      background: var(--color-surface);
       outline: none;
       transition: border-color 0.15s;
-      background: var(--color-surface);
+      min-width: 200px;
     }
 
-    .form-group textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-
-    .form-group input[type="text"]:focus,
-    .form-group input[type="date"]:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
+    .control-group select:focus,
+    .control-group input[type="date"]:focus {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
     }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* Radio group */
-    .radio-group {
-      display: flex;
-      gap: 16px;
-    }
-
-    .radio-group label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 400;
+    .control-group select {
       cursor: pointer;
     }
 
-    .radio-group input[type="radio"] {
+    .duration-mode-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .duration-mode-group label {
+      text-transform: none;
+      letter-spacing: normal;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-text);
+      cursor: pointer;
+    }
+
+    .duration-mode-group input[type="radio"] {
       accent-color: var(--color-primary);
     }
 
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      margin-top: 24px;
-    }
-
-    .project-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    /* Summary bar */
-    .summary-bar {
+    /* ===== Summary Cards ===== */
+    .summary-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .summary-card {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
-      padding: 16px 20px;
+      padding: 18px 22px;
       box-shadow: var(--shadow);
     }
 
     .summary-card-value {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 800;
-      color: var(--color-primary);
+      color: var(--color-text);
     }
 
     .summary-card-label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--color-text-secondary);
       margin-top: 2px;
     }
 
-    /* Project details row */
-    .project-details {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px 24px;
-      margin-bottom: 20px;
-      padding: 14px 18px;
-      background: var(--color-bg);
-      border-radius: var(--radius);
-      font-size: 0.85rem;
+    .summary-card-value.highlight {
+      color: var(--color-primary);
     }
 
-    .project-detail {
+    /* ===== View Toggle ===== */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--color-bg);
+      border-radius: var(--radius);
+      padding: 3px;
+      border: 1px solid var(--color-border);
+    }
+
+    .view-toggle-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: var(--color-text-secondary);
+      transition: background 0.15s, color 0.15s;
+      font-family: inherit;
+    }
+
+    .view-toggle-btn.active {
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow);
+    }
+
+    .view-toggle-btn:hover:not(.active) {
+      color: var(--color-text);
+    }
+
+    /* ===== Timeline View ===== */
+    .timeline-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .timeline-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .timeline-header-bar h2 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .timeline-scroll {
+      overflow-x: auto;
+      padding: 0;
+    }
+
+    /* Gantt-style timeline */
+    .gantt {
+      min-width: 900px;
+      position: relative;
+    }
+
+    .gantt-header {
+      display: flex;
+      border-bottom: 2px solid var(--color-border);
+      background: var(--color-bg);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .gantt-label-col {
+      min-width: 220px;
+      max-width: 220px;
+      flex-shrink: 0;
+      padding: 10px 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-right: 1px solid var(--color-border);
+    }
+
+    .gantt-timeline-col {
+      flex: 1;
+      display: flex;
+      position: relative;
+    }
+
+    .gantt-week {
+      flex: 1;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      border-right: 1px solid var(--color-border);
+      min-width: 80px;
+    }
+
+    .gantt-week:last-child {
+      border-right: none;
+    }
+
+    .gantt-week .week-month {
+      font-size: 0.625rem;
+      color: var(--color-text-muted);
+      margin-bottom: 2px;
+    }
+
+    .gantt-body {
+      position: relative;
+    }
+
+    .gantt-row {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      min-height: 60px;
+      transition: background 0.1s;
+    }
+
+    .gantt-row:hover {
+      background: rgba(37,99,235,0.015);
+    }
+
+    .gantt-row:last-child {
+      border-bottom: none;
+    }
+
+    .gantt-row-label {
+      min-width: 220px;
+      max-width: 220px;
+      flex-shrink: 0;
+      padding: 12px 16px;
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .gantt-row-label .phase-label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .gantt-row-label .phase-dates {
+      font-size: 0.6875rem;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .gantt-row-label .phase-duration {
+      font-size: 0.625rem;
+      color: var(--color-text-muted);
+    }
+
+    .gantt-row-timeline {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .gantt-bar {
+      position: absolute;
+      height: 36px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      z-index: 2;
+    }
+
+    .gantt-bar:hover {
+      filter: brightness(0.95);
+      transform: translateY(-1px);
+      z-index: 3;
+    }
+
+    .gantt-bar.phase-design {
+      background: var(--phase-design-bg);
+      border: 1px solid var(--phase-design-border);
+      color: var(--phase-design);
+    }
+
+    .gantt-bar.phase-dev {
+      background: var(--phase-dev-bg);
+      border: 1px solid var(--phase-dev-border);
+      color: var(--phase-dev);
+    }
+
+    .gantt-bar.phase-qa {
+      background: var(--phase-qa-bg);
+      border: 1px solid var(--phase-qa-border);
+      color: var(--phase-qa);
+    }
+
+    .gantt-bar.phase-audits {
+      background: var(--phase-audits-bg);
+      border: 1px solid var(--phase-audits-border);
+      color: var(--phase-audits);
+    }
+
+    .gantt-bar.phase-launch {
+      background: var(--phase-launch-bg);
+      border: 1px solid var(--phase-launch-border);
+      color: var(--phase-launch);
+    }
+
+    /* Milestone markers on bars */
+    .gantt-milestones {
+      display: flex;
+      gap: 6px;
+      overflow: hidden;
+    }
+
+    .gantt-milestone-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Grid lines behind bars */
+    .gantt-grid-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .gantt-grid-line {
+      flex: 1;
+      border-right: 1px solid var(--color-border);
+      min-width: 80px;
+    }
+
+    .gantt-grid-line:last-child {
+      border-right: none;
+    }
+
+    /* Today marker */
+    .gantt-today {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--color-primary);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .gantt-today::before {
+      content: 'Today';
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.5625rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      white-space: nowrap;
+      background: var(--color-primary-light);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* ===== Phase Detail Panel (on click) ===== */
+    .detail-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 24px 28px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .detail-panel.active {
+      display: block;
+    }
+
+    .detail-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .detail-panel-header h3 {
+      font-size: 1.0625rem;
+      font-weight: 700;
+    }
+
+    .detail-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .detail-panel-close:hover {
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    .detail-meta {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .detail-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .detail-meta-item .meta-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .detail-meta-item .meta-value {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .milestones-list {
+      list-style: none;
+    }
+
+    .milestones-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.8125rem;
+    }
+
+    .milestones-list li:last-child {
+      border-bottom: none;
+    }
+
+    .milestone-marker {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .milestone-text {
+      color: var(--color-text);
+    }
+
+    .milestone-sub {
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ===== Calendar View ===== */
+    .calendar-view {
+      display: none;
+    }
+
+    .calendar-view.active {
+      display: block;
+    }
+
+    .timeline-view {
+      display: none;
+    }
+
+    .timeline-view.active {
+      display: block;
+    }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .calendar-nav-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-dark);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--color-text);
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    .calendar-nav-btn:hover {
+      background: var(--color-bg);
+    }
+
+    .calendar-month-label {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: var(--color-text);
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .calendar-grid-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .calendar-grid-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .calendar-day-name {
+      padding: 10px;
+      text-align: center;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .calendar-cell {
+      min-height: 90px;
+      padding: 6px 8px;
+      border-right: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+      position: relative;
+    }
+
+    .calendar-cell:nth-child(7n) {
+      border-right: none;
+    }
+
+    .calendar-cell.outside {
+      background: var(--color-bg);
+    }
+
+    .calendar-cell.today {
+      background: rgba(37,99,235,0.04);
+    }
+
+    .calendar-cell.weekend {
+      background: #fafafa;
+    }
+
+    .calendar-date {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .calendar-cell.outside .calendar-date {
+      color: var(--color-text-muted);
+    }
+
+    .calendar-cell.today .calendar-date {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .calendar-events {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .calendar-event {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      transition: filter 0.1s;
+    }
+
+    .calendar-event:hover {
+      filter: brightness(0.9);
+    }
+
+    .calendar-event.phase-start {
+      border-left: 3px solid;
+    }
+
+    .calendar-event.ev-design {
+      background: var(--phase-design-bg);
+      color: var(--phase-design);
+      border-color: var(--phase-design);
+    }
+
+    .calendar-event.ev-dev {
+      background: var(--phase-dev-bg);
+      color: var(--phase-dev);
+      border-color: var(--phase-dev);
+    }
+
+    .calendar-event.ev-qa {
+      background: var(--phase-qa-bg);
+      color: var(--phase-qa);
+      border-color: var(--phase-qa);
+    }
+
+    .calendar-event.ev-audits {
+      background: var(--phase-audits-bg);
+      color: var(--phase-audits);
+      border-color: var(--phase-audits);
+    }
+
+    .calendar-event.ev-launch {
+      background: var(--phase-launch-bg);
+      color: var(--phase-launch);
+      border-color: var(--phase-launch);
+    }
+
+    /* ===== Tooltip ===== */
+    .tooltip {
+      display: none;
+      position: fixed;
+      background: var(--color-text);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      max-width: 300px;
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: var(--shadow-lg);
+      line-height: 1.5;
+    }
+
+    .tooltip.active {
+      display: block;
+    }
+
+    .tooltip-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 0.8125rem;
+    }
+
+    .tooltip-dates {
+      color: #d1d5db;
+      margin-bottom: 6px;
+    }
+
+    .tooltip-milestones {
+      list-style: none;
+    }
+
+    .tooltip-milestones li {
+      padding: 2px 0;
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .project-detail .detail-label {
-      font-weight: 600;
-      color: var(--color-text-secondary);
+    .tooltip-milestones li::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #9ca3af;
+      flex-shrink: 0;
     }
 
-    .project-detail .detail-value {
-      color: var(--color-text);
+    /* ===== Export Panel ===== */
+    .export-menu {
+      position: relative;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .badge-on-track {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .badge-behind {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .badge-seo-yes {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-
-    .badge-seo-no {
-      background: #f3f4f6;
-      color: #6b7280;
-    }
-
-    /* Inline editable fields on project card */
-    .project-detail select,
-    .project-detail input[type="date"] {
-      padding: 3px 8px;
+    .export-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
-      font-size: 0.8rem;
+      box-shadow: var(--shadow-lg);
+      min-width: 160px;
+      z-index: 30;
+      overflow: hidden;
+    }
+
+    .export-dropdown.active {
+      display: block;
+    }
+
+    .export-dropdown button {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      text-align: left;
+      font-size: 0.8125rem;
       font-family: inherit;
       color: var(--color-text);
-      background: var(--color-surface);
-      outline: none;
       cursor: pointer;
     }
 
-    .project-detail select:focus,
-    .project-detail input[type="date"]:focus {
-      border-color: var(--color-primary);
+    .export-dropdown button:hover {
+      background: var(--color-bg);
     }
 
-    .project-notes {
-      margin-bottom: 20px;
-    }
-
-    .project-notes textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--color-border);
+    /* ===== Past date warning ===== */
+    .past-warning {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
       border-radius: var(--radius);
-      font-size: 0.85rem;
-      font-family: inherit;
-      color: var(--color-text);
-      background: var(--color-surface);
-      outline: none;
-      resize: vertical;
-      min-height: 48px;
-      transition: border-color 0.15s;
+      padding: 10px 16px;
+      font-size: 0.8125rem;
+      color: #92400e;
+      margin-bottom: 16px;
+      display: none;
     }
 
-    .project-notes textarea:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    .past-warning.active {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .project-notes-label {
-      font-size: 0.8rem;
+    /* ===== Legend ===== */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 12px 24px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.6875rem;
       font-weight: 600;
       color: var(--color-text-secondary);
-      margin-bottom: 6px;
     }
 
-    /* Responsive */
-    @media (max-width: 640px) {
-      .header {
-        padding: 16px 20px;
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .header { padding: 16px 20px; }
+      .header-inner {
         flex-direction: column;
-        gap: 12px;
         align-items: flex-start;
+        gap: 12px;
       }
+      .main { padding: 20px 16px; }
+      .controls-row { flex-direction: column; gap: 16px; }
+      .control-group select,
+      .control-group input[type="date"] { min-width: unset; width: 100%; }
+      .summary-row { grid-template-columns: 1fr 1fr; }
+      .calendar-cell { min-height: 60px; }
+    }
 
-      .main {
-        padding: 20px 16px;
-      }
-
-      .phases-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .summary-bar {
-        grid-template-columns: 1fr 1fr;
-      }
+    @media print {
+      .header { position: static; }
+      .controls-panel, .header-actions { display: none; }
+      .gantt-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip"></div>
+
+  <!-- Header -->
   <div class="header">
-    <div>
-      <h1>Project Progress Dashboard</h1>
-      <div class="header-subtitle">Track website projects through every phase</div>
-    </div>
-    <button class="btn btn-primary" onclick="openAddModal()">+ Add Project</button>
-  </div>
-
-  <div class="main">
-    <div class="summary-bar" id="summaryBar"></div>
-    <div id="projectList"></div>
-  </div>
-
-  <!-- Add Project Modal -->
-  <div class="modal-overlay" id="addModal">
-    <div class="modal">
-      <h2 id="modalTitle">Add New Project</h2>
-      <div class="form-group">
-        <label for="projectNameInput">Project Name</label>
-        <input type="text" id="projectNameInput" placeholder="e.g. Acme Corp Website Redesign">
+    <div class="header-inner">
+      <div>
+        <h1>Website Timeline &amp; Milestone Calculator</h1>
+        <div class="header-subtitle">Calculate project timelines based on website type and start date</div>
       </div>
-      <div class="form-group">
-        <label for="projectClientInput">Client / Description (optional)</label>
-        <input type="text" id="projectClientInput" placeholder="e.g. Acme Corp">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>SEO</label>
-          <div class="radio-group">
-            <label><input type="radio" name="seo" value="Yes"> Yes</label>
-            <label><input type="radio" name="seo" value="No" checked> No</label>
+      <div class="header-actions">
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" data-view="timeline" onclick="setView('timeline')">Timeline</button>
+          <button class="view-toggle-btn" data-view="calendar" onclick="setView('calendar')">Calendar</button>
+        </div>
+        <div class="export-menu">
+          <button class="btn btn-outline" onclick="toggleExport()">Export</button>
+          <div class="export-dropdown" id="exportDropdown">
+            <button onclick="exportCSV()">Export CSV</button>
+            <button onclick="exportJSON()">Export JSON</button>
           </div>
         </div>
-        <div class="form-group">
-          <label for="websiteTypeInput">Website Type</label>
-          <select id="websiteTypeInput">
-            <option value="Webflow Template">Webflow Template</option>
-            <option value="Webflow Semi-Custom">Webflow Semi-Custom</option>
-            <option value="Webflow Fully Custom">Webflow Fully Custom</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="goLiveDateInput">Go Live Date</label>
-          <input type="date" id="goLiveDateInput">
-        </div>
-        <div class="form-group">
-          <label for="statusInput">Status</label>
-          <select id="statusInput">
-            <option value="On Track">On Track</option>
-            <option value="Behind">Behind</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="notesInput">Notes (optional)</label>
-        <textarea id="notesInput" placeholder="Any additional notes..."></textarea>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
-        <button class="btn btn-primary" id="modalSaveBtn" onclick="saveProject()">Add Project</button>
       </div>
     </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Controls -->
+    <div class="controls-panel">
+      <div class="controls-row">
+        <div class="control-group">
+          <label for="websiteType">Website Type</label>
+          <select id="websiteType" onchange="recalculate()">
+            <option value="template">Template</option>
+            <option value="semiCustom">Semi-Custom</option>
+            <option value="fullyCustom">Fully Custom</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="startDate">Start Date</label>
+          <input type="date" id="startDate" onchange="recalculate()">
+        </div>
+        <div class="control-group">
+          <label>Duration Estimate</label>
+          <div class="duration-mode-group" style="padding-top: 4px;">
+            <label><input type="radio" name="durationMode" value="min" onchange="recalculate()"> Min</label>
+            <label><input type="radio" name="durationMode" value="mid" checked onchange="recalculate()"> Mid</label>
+            <label><input type="radio" name="durationMode" value="max" onchange="recalculate()"> Max</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Past date warning -->
+    <div class="past-warning" id="pastWarning">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      <span>The selected start date is in the past. Timeline dates reflect historical scheduling.</span>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-row" id="summaryRow"></div>
+
+    <!-- Timeline View -->
+    <div class="timeline-view active" id="timelineView">
+      <div class="timeline-container">
+        <div class="timeline-header-bar">
+          <h2>Project Timeline</h2>
+        </div>
+        <div class="timeline-scroll" id="timelineScroll">
+          <div class="gantt" id="ganttChart"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="calendar-view" id="calendarView">
+      <div class="calendar-nav">
+        <button class="calendar-nav-btn" onclick="navigateMonth(-1)">&larr; Prev</button>
+        <span class="calendar-month-label" id="calendarMonthLabel"></span>
+        <button class="calendar-nav-btn" onclick="navigateMonth(1)">Next &rarr;</button>
+      </div>
+      <div class="calendar-grid-container">
+        <div class="calendar-grid-header">
+          <div class="calendar-day-name">Sun</div>
+          <div class="calendar-day-name">Mon</div>
+          <div class="calendar-day-name">Tue</div>
+          <div class="calendar-day-name">Wed</div>
+          <div class="calendar-day-name">Thu</div>
+          <div class="calendar-day-name">Fri</div>
+          <div class="calendar-day-name">Sat</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+    </div>
+
+    <!-- Phase Detail Panel -->
+    <div class="detail-panel" id="detailPanel"></div>
+
   </div>
 
   <script>
+    /* ================================================================
+       CONFIGURATION
+       ================================================================ */
+
+    /**
+     * Centralized duration configuration.
+     * All durations are in business days.
+     * 1 week = 5 business days.
+     */
+    const PHASE_DURATIONS = {
+      template: {
+        designPlanning:      { min: 5,  max: 10 },  // 1-2 weeks
+        developmentContent:  { min: 10, max: 15 },  // 2-3 weeks
+        qaContentUpload:     { min: 2,  max: 3  },  // 2-3 days
+        audits:              { min: 20, max: 25 },  // 4-5 weeks
+        preLaunchLaunch:     { min: 5,  max: 5  }   // ~1 week
+      },
+      semiCustom: {
+        designPlanning:      { min: 10, max: 15 },  // 2-3 weeks
+        developmentContent:  { min: 10, max: 20 },  // 2-4 weeks
+        qaContentUpload:     { min: 5,  max: 5  },  // ~1 week
+        audits:              { min: 15, max: 20 },  // 3-4 weeks
+        preLaunchLaunch:     { min: 5,  max: 5  }   // ~1 week
+      },
+      fullyCustom: {
+        designPlanning:      { min: 15, max: 20 },  // 3-4 weeks
+        developmentContent:  { min: 20, max: 30 },  // 4-6 weeks
+        qaContentUpload:     { min: 5,  max: 10 },  // 1-2 weeks
+        audits:              { min: 10, max: 15 },  // 2-3 weeks
+        preLaunchLaunch:     { min: 5,  max: 5  }   // ~1 week
+      }
+    };
+
+    /**
+     * Phase definitions with display info and milestones.
+     */
     const PHASES = [
-      { key: 'design', name: 'Design', cssClass: 'design' },
-      { key: 'content', name: 'Content Generation & Development', cssClass: 'content' },
-      { key: 'qa', name: 'QA & Content Upload', cssClass: 'qa' },
-      { key: 'audits', name: 'Audits', cssClass: 'audits' },
-      { key: 'launch', name: 'Pre-Launch & Launch', cssClass: 'launch' }
+      {
+        key: 'designPlanning',
+        name: 'Design & Planning',
+        cssClass: 'phase-design',
+        eventClass: 'ev-design',
+        color: '#7c3aed',
+        milestones: [
+          { label: 'Internal Review' },
+          { label: 'Partner Review' },
+          { label: 'Campaign Strategy Trigger', sub: 'After SEO Keywords approval' }
+        ]
+      },
+      {
+        key: 'developmentContent',
+        name: 'Development & Content Generation',
+        cssClass: 'phase-dev',
+        eventClass: 'ev-dev',
+        color: '#d97706',
+        milestones: [
+          { label: 'Secondary Page Development' },
+          { label: 'Content Document Creation' },
+          { label: 'Internal Content Reviews', sub: 'Marketing Director / Marketing Coordinator' },
+          { label: 'SEO Team Review', sub: 'Copy only' }
+        ]
+      },
+      {
+        key: 'qaContentUpload',
+        name: 'QA & Content Upload',
+        cssClass: 'phase-qa',
+        eventClass: 'ev-qa',
+        color: '#059669',
+        milestones: [
+          { label: 'Development QA Testing' },
+          { label: 'Content Document Handoff' },
+          { label: 'Content Upload' }
+        ]
+      },
+      {
+        key: 'audits',
+        name: 'Audits',
+        cssClass: 'phase-audits',
+        eventClass: 'ev-audits',
+        color: '#dc2626',
+        milestones: [
+          { label: 'Internal Audits' },
+          { label: 'Internal Revisions' },
+          { label: 'Partner Audits' },
+          { label: 'Partner Revisions' }
+        ]
+      },
+      {
+        key: 'preLaunchLaunch',
+        name: 'Pre-Launch & Launch',
+        cssClass: 'phase-launch',
+        eventClass: 'ev-launch',
+        color: '#2563eb',
+        milestones: [
+          { label: 'Pre-Launch' },
+          { label: 'Launch' },
+          { label: 'Post-Launch SEO Assets', sub: 'Schema Markup, Image Alt Tags, Final SEO Revisions' }
+        ]
+      }
     ];
 
-    const STORAGE_KEY = 'project_dashboard_data';
+    /* ================================================================
+       STATE
+       ================================================================ */
 
-    let projects = [];
-    let editingProjectId = null;
+    let currentView = 'timeline';
+    let calendarMonth = null; // Date object for displayed month
+    let calculatedPhases = [];
+    let projectStartDate = null;
+    let projectEndDate = null;
 
-    // --- Persistence ---
-    function loadProjects() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          projects = JSON.parse(raw);
+    /* ================================================================
+       BUSINESS DAY LOGIC
+       ================================================================ */
+
+    /**
+     * Check if a date falls on a weekend.
+     */
+    function isWeekend(date) {
+      const day = date.getDay();
+      return day === 0 || day === 6;
+    }
+
+    /**
+     * Add N business days to a date, returning a new Date.
+     * Skips weekends.
+     */
+    function addBusinessDays(startDate, numDays) {
+      const result = new Date(startDate);
+      let added = 0;
+      while (added < numDays) {
+        result.setDate(result.getDate() + 1);
+        if (!isWeekend(result)) {
+          added++;
         }
-      } catch (e) {
-        projects = [];
       }
+      return result;
     }
 
-    function saveToStorage() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    /**
+     * Count business days between two dates (inclusive of start, exclusive of end).
+     */
+    function countBusinessDays(start, end) {
+      let count = 0;
+      const current = new Date(start);
+      while (current < end) {
+        if (!isWeekend(current)) {
+          count++;
+        }
+        current.setDate(current.getDate() + 1);
+      }
+      return count;
     }
 
-    // --- Helpers ---
-    function generateId() {
-      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    /**
+     * Count total calendar days between two dates.
+     */
+    function calendarDaysBetween(start, end) {
+      return Math.round((end - start) / (1000 * 60 * 60 * 24));
     }
 
-    function getOverallProgress(project) {
-      const total = PHASES.reduce((sum, phase) => sum + (project.phases[phase.key] || 0), 0);
-      return Math.round(total / PHASES.length);
+    /**
+     * Format a date as "Mon DD, YYYY".
+     */
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
     }
 
-    function formatDate(isoString) {
-      const d = new Date(isoString);
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    /**
+     * Format a date as "Mon DD".
+     */
+    function formatDateShort(date) {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
     }
 
-    // --- Rendering ---
-    function render() {
+    /**
+     * Get the Monday of the week containing the given date.
+     */
+    function getWeekStart(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    /**
+     * Resolve duration based on selected mode.
+     */
+    function resolveDuration(durationConfig, mode) {
+      if (mode === 'min') return durationConfig.min;
+      if (mode === 'max') return durationConfig.max;
+      return Math.round((durationConfig.min + durationConfig.max) / 2);
+    }
+
+    /**
+     * Format business days as a readable duration label.
+     */
+    function formatDuration(businessDays) {
+      if (businessDays <= 5) {
+        return businessDays === 1 ? '1 day' : businessDays + ' days';
+      }
+      const weeks = businessDays / 5;
+      if (Number.isInteger(weeks)) {
+        return weeks === 1 ? '1 week' : weeks + ' weeks';
+      }
+      return weeks.toFixed(1) + ' weeks';
+    }
+
+    /**
+     * Format the duration range label for a phase.
+     */
+    function formatDurationRange(durationConfig) {
+      const minWeeks = durationConfig.min / 5;
+      const maxWeeks = durationConfig.max / 5;
+      if (durationConfig.min === durationConfig.max) {
+        if (durationConfig.min < 5) {
+          return durationConfig.min === 1 ? '~1 day' : '~' + durationConfig.min + ' days';
+        }
+        return '~' + minWeeks + (minWeeks === 1 ? ' week' : ' weeks');
+      }
+      if (durationConfig.min < 5 && durationConfig.max < 5) {
+        return durationConfig.min + '-' + durationConfig.max + ' days';
+      }
+      return minWeeks + '-' + maxWeeks + ' weeks';
+    }
+
+    /* ================================================================
+       CALCULATION ENGINE
+       ================================================================ */
+
+    function recalculate() {
+      const websiteType = document.getElementById('websiteType').value;
+      const startDateInput = document.getElementById('startDate').value;
+      const durationMode = document.querySelector('input[name="durationMode"]:checked').value;
+
+      if (!startDateInput) return;
+
+      const startDate = new Date(startDateInput + 'T00:00:00');
+
+      // Adjust start to next business day if it falls on a weekend
+      let adjustedStart = new Date(startDate);
+      while (isWeekend(adjustedStart)) {
+        adjustedStart.setDate(adjustedStart.getDate() + 1);
+      }
+
+      projectStartDate = new Date(adjustedStart);
+
+      const durations = PHASE_DURATIONS[websiteType];
+      calculatedPhases = [];
+      let currentStart = new Date(adjustedStart);
+
+      PHASES.forEach(phase => {
+        const durationConfig = durations[phase.key];
+        const businessDays = resolveDuration(durationConfig, durationMode);
+        const endDate = addBusinessDays(currentStart, businessDays);
+
+        calculatedPhases.push({
+          ...phase,
+          startDate: new Date(currentStart),
+          endDate: new Date(endDate),
+          businessDays: businessDays,
+          durationLabel: formatDuration(businessDays),
+          rangeLabel: formatDurationRange(durationConfig)
+        });
+
+        // Next phase starts the next business day after this one ends
+        currentStart = new Date(endDate);
+        // endDate is already a business day, so next start is the next business day
+        currentStart.setDate(currentStart.getDate() + 1);
+        while (isWeekend(currentStart)) {
+          currentStart.setDate(currentStart.getDate() + 1);
+        }
+      });
+
+      projectEndDate = calculatedPhases[calculatedPhases.length - 1].endDate;
+
+      // Past date warning
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const warningEl = document.getElementById('pastWarning');
+      if (startDate < today) {
+        warningEl.classList.add('active');
+      } else {
+        warningEl.classList.remove('active');
+      }
+
+      // Set calendar month to start date's month
+      if (!calendarMonth) {
+        calendarMonth = new Date(projectStartDate.getFullYear(), projectStartDate.getMonth(), 1);
+      }
+
       renderSummary();
-      renderProjects();
+      renderTimeline();
+      renderCalendar();
+      renderLegend();
+      closeDetailPanel();
     }
+
+    /* ================================================================
+       RENDERING - SUMMARY
+       ================================================================ */
 
     function renderSummary() {
-      const container = document.getElementById('summaryBar');
-      if (projects.length === 0) {
+      const container = document.getElementById('summaryRow');
+      if (calculatedPhases.length === 0) {
         container.innerHTML = '';
         return;
       }
 
-      const totalProjects = projects.length;
-      const avgProgress = Math.round(
-        projects.reduce((sum, p) => sum + getOverallProgress(p), 0) / totalProjects
-      );
-      const completed = projects.filter(p => getOverallProgress(p) === 100).length;
-      const inProgress = totalProjects - completed;
+      const totalBusinessDays = calculatedPhases.reduce((sum, p) => sum + p.businessDays, 0);
+      const totalCalendarDays = calendarDaysBetween(projectStartDate, projectEndDate);
+      const totalWeeks = Math.ceil(totalBusinessDays / 5);
 
       container.innerHTML = `
         <div class="summary-card">
-          <div class="summary-card-value">${totalProjects}</div>
-          <div class="summary-card-label">Total Projects</div>
+          <div class="summary-card-value highlight">${formatDateShort(projectStartDate)}</div>
+          <div class="summary-card-label">Project Start</div>
         </div>
         <div class="summary-card">
-          <div class="summary-card-value">${inProgress}</div>
-          <div class="summary-card-label">In Progress</div>
+          <div class="summary-card-value highlight">${formatDateShort(projectEndDate)}</div>
+          <div class="summary-card-label">Project End</div>
         </div>
         <div class="summary-card">
-          <div class="summary-card-value">${completed}</div>
-          <div class="summary-card-label">Completed</div>
+          <div class="summary-card-value">${totalWeeks}</div>
+          <div class="summary-card-label">Total Weeks</div>
         </div>
         <div class="summary-card">
-          <div class="summary-card-value">${avgProgress}%</div>
-          <div class="summary-card-label">Avg. Progress</div>
+          <div class="summary-card-value">${totalBusinessDays}</div>
+          <div class="summary-card-label">Business Days</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-value">${totalCalendarDays}</div>
+          <div class="summary-card-label">Calendar Days</div>
         </div>
       `;
     }
 
-    function renderProjects() {
-      const container = document.getElementById('projectList');
+    /* ================================================================
+       RENDERING - TIMELINE (Gantt)
+       ================================================================ */
 
-      if (projects.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p>No projects yet</p>
-            <small>Click "Add Project" to get started.</small>
-          </div>
-        `;
+    function renderTimeline() {
+      if (calculatedPhases.length === 0) {
+        document.getElementById('ganttChart').innerHTML = '';
         return;
       }
 
-      container.innerHTML = projects.map(project => {
-        const overall = getOverallProgress(project);
-        const seo = project.seo || 'No';
-        const websiteType = project.websiteType || 'Webflow Template';
-        const goLiveDate = project.goLiveDate || '';
-        const status = project.status || 'On Track';
-        const notes = project.notes || '';
+      // Generate weeks for the header
+      const timelineStart = getWeekStart(projectStartDate);
+      const timelineEndPadded = new Date(projectEndDate);
+      timelineEndPadded.setDate(timelineEndPadded.getDate() + 7);
+      const timelineEnd = getWeekStart(timelineEndPadded);
 
-        const statusBadgeClass = status === 'On Track' ? 'badge-on-track' : 'badge-behind';
-        const seoBadgeClass = seo === 'Yes' ? 'badge-seo-yes' : 'badge-seo-no';
+      const weeks = [];
+      const cursor = new Date(timelineStart);
+      while (cursor <= timelineEnd) {
+        weeks.push(new Date(cursor));
+        cursor.setDate(cursor.getDate() + 7);
+      }
 
-        const phasesHtml = PHASES.map(phase => {
-          const pct = project.phases[phase.key] || 0;
-          return `
-            <div class="phase-item">
-              <div class="phase-header">
-                <span class="phase-name">${phase.name}</span>
-                <span class="phase-pct">${pct}%</span>
-              </div>
-              <div class="phase-bar-track">
-                <div class="phase-bar-fill ${phase.cssClass}" style="width: ${pct}%"></div>
-              </div>
-              <input
-                type="range"
-                class="phase-slider"
-                min="0"
-                max="100"
-                step="5"
-                value="${pct}"
-                oninput="updatePhase('${project.id}', '${phase.key}', this.value)"
-              >
-            </div>
-          `;
-        }).join('');
+      const totalTimelineMs = timelineEnd.getTime() + 7 * 86400000 - timelineStart.getTime();
 
-        const goLiveDateDisplay = goLiveDate
-          ? new Date(goLiveDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : 'Not set';
-
-        return `
-          <div class="project-card" data-project-id="${project.id}">
-            <div class="project-header">
-              <div>
-                <div class="project-name">${escapeHtml(project.name)}</div>
-                ${project.client ? `<div class="project-meta">${escapeHtml(project.client)}</div>` : ''}
-                <div class="project-meta">Added ${formatDate(project.createdAt)}</div>
-              </div>
-              <div class="project-actions">
-                <div class="project-overall">
-                  <div class="project-overall-pct">${overall}%</div>
-                  <div class="project-overall-label">Overall</div>
-                </div>
-                <button class="btn btn-danger" onclick="deleteProject('${project.id}')">Remove</button>
-              </div>
-            </div>
-            <div class="project-details">
-              <div class="project-detail">
-                <span class="detail-label">SEO:</span>
-                <select onchange="updateField('${project.id}', 'seo', this.value)">
-                  <option value="Yes"${seo === 'Yes' ? ' selected' : ''}>Yes</option>
-                  <option value="No"${seo === 'No' ? ' selected' : ''}>No</option>
-                </select>
-              </div>
-              <div class="project-detail">
-                <span class="detail-label">Type:</span>
-                <select onchange="updateField('${project.id}', 'websiteType', this.value)">
-                  <option value="Webflow Template"${websiteType === 'Webflow Template' ? ' selected' : ''}>Webflow Template</option>
-                  <option value="Webflow Semi-Custom"${websiteType === 'Webflow Semi-Custom' ? ' selected' : ''}>Webflow Semi-Custom</option>
-                  <option value="Webflow Fully Custom"${websiteType === 'Webflow Fully Custom' ? ' selected' : ''}>Webflow Fully Custom</option>
-                </select>
-              </div>
-              <div class="project-detail">
-                <span class="detail-label">Go Live:</span>
-                <input type="date" value="${goLiveDate}" onchange="updateField('${project.id}', 'goLiveDate', this.value)">
-              </div>
-              <div class="project-detail">
-                <span class="detail-label">Status:</span>
-                <select onchange="updateField('${project.id}', 'status', this.value)">
-                  <option value="On Track"${status === 'On Track' ? ' selected' : ''}>On Track</option>
-                  <option value="Behind"${status === 'Behind' ? ' selected' : ''}>Behind</option>
-                </select>
-              </div>
-            </div>
-            <div class="project-notes">
-              <div class="project-notes-label">Notes</div>
-              <textarea
-                placeholder="Add notes..."
-                onchange="updateField('${project.id}', 'notes', this.value)"
-              >${escapeHtml(notes)}</textarea>
-            </div>
-            <div class="overall-bar-track">
-              <div class="overall-bar-fill" style="width: ${overall}%"></div>
-            </div>
-            <div class="phases-grid">
-              ${phasesHtml}
-            </div>
-          </div>
-        `;
+      // Header
+      const headerWeeks = weeks.map(w => {
+        const monthName = w.toLocaleDateString('en-US', { month: 'short' });
+        const day = w.getDate();
+        return `<div class="gantt-week">
+          <div class="week-month">${monthName}</div>
+          ${day}
+        </div>`;
       }).join('');
-    }
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
+      // Grid lines
+      const gridLines = weeks.map(() => '<div class="gantt-grid-line"></div>').join('');
 
-    // --- Actions ---
-    function openAddModal() {
-      editingProjectId = null;
-      document.getElementById('modalTitle').textContent = 'Add New Project';
-      document.getElementById('modalSaveBtn').textContent = 'Add Project';
-      document.getElementById('projectNameInput').value = '';
-      document.getElementById('projectClientInput').value = '';
-      document.querySelector('input[name="seo"][value="No"]').checked = true;
-      document.getElementById('websiteTypeInput').value = 'Webflow Template';
-      document.getElementById('goLiveDateInput').value = '';
-      document.getElementById('statusInput').value = 'On Track';
-      document.getElementById('notesInput').value = '';
-      document.getElementById('addModal').classList.add('active');
-      document.getElementById('projectNameInput').focus();
-    }
-
-    function closeAddModal() {
-      document.getElementById('addModal').classList.remove('active');
-      editingProjectId = null;
-    }
-
-    function saveProject() {
-      const name = document.getElementById('projectNameInput').value.trim();
-      const client = document.getElementById('projectClientInput').value.trim();
-
-      if (!name) {
-        document.getElementById('projectNameInput').focus();
-        return;
+      // Today marker
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let todayMarker = '';
+      if (today >= timelineStart && today <= new Date(timelineEnd.getTime() + 7 * 86400000)) {
+        const todayPct = ((today.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+        todayMarker = `<div class="gantt-today" style="left: ${todayPct}%"></div>`;
       }
 
-      const seo = document.querySelector('input[name="seo"]:checked').value;
-      const websiteType = document.getElementById('websiteTypeInput').value;
-      const goLiveDate = document.getElementById('goLiveDateInput').value;
-      const status = document.getElementById('statusInput').value;
-      const notes = document.getElementById('notesInput').value.trim();
+      // Rows
+      const rows = calculatedPhases.map(phase => {
+        const barStart = ((phase.startDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+        const barEnd = ((phase.endDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+        const barWidth = Math.max(barEnd - barStart, 1);
 
-      const newProject = {
-        id: generateId(),
-        name: name,
-        client: client,
-        seo: seo,
-        websiteType: websiteType,
-        goLiveDate: goLiveDate,
-        status: status,
-        notes: notes,
-        createdAt: new Date().toISOString(),
-        phases: {
-          design: 0,
-          content: 0,
-          qa: 0,
-          audits: 0,
-          launch: 0
+        const milestoneDots = phase.milestones.map(m =>
+          `<span class="gantt-milestone-dot" style="background: currentColor; opacity: 0.5;" title="${escapeAttr(m.label)}"></span>`
+        ).join('');
+
+        return `<div class="gantt-row">
+          <div class="gantt-row-label">
+            <div class="phase-label">${phase.name}</div>
+            <div class="phase-dates">${formatDateShort(phase.startDate)} - ${formatDateShort(phase.endDate)}</div>
+            <div class="phase-duration">${phase.durationLabel} (${phase.rangeLabel})</div>
+          </div>
+          <div class="gantt-row-timeline">
+            <div class="gantt-grid-lines">${gridLines}</div>
+            ${todayMarker}
+            <div class="gantt-bar ${phase.cssClass}"
+                 style="left: ${barStart}%; width: ${barWidth}%;"
+                 data-phase-key="${phase.key}"
+                 onmouseenter="showTooltip(event, '${phase.key}')"
+                 onmousemove="moveTooltip(event)"
+                 onmouseleave="hideTooltip()"
+                 onclick="showPhaseDetail('${phase.key}')">
+              <div class="gantt-milestones">${milestoneDots}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('ganttChart').innerHTML = `
+        <div class="gantt-header">
+          <div class="gantt-label-col">Phase</div>
+          <div class="gantt-timeline-col">${headerWeeks}</div>
+        </div>
+        <div class="gantt-body">${rows}</div>
+      `;
+    }
+
+    /* ================================================================
+       RENDERING - CALENDAR
+       ================================================================ */
+
+    function renderCalendar() {
+      if (!calendarMonth || calculatedPhases.length === 0) return;
+
+      const year = calendarMonth.getFullYear();
+      const month = calendarMonth.getMonth();
+
+      document.getElementById('calendarMonthLabel').textContent =
+        calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      // First day of month
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      // Start grid from Sunday before first day
+      const gridStart = new Date(firstDay);
+      gridStart.setDate(gridStart.getDate() - firstDay.getDay());
+
+      // End grid on Saturday after last day
+      const gridEnd = new Date(lastDay);
+      gridEnd.setDate(gridEnd.getDate() + (6 - lastDay.getDay()));
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let html = '';
+      const cursor = new Date(gridStart);
+
+      while (cursor <= gridEnd) {
+        const isOutside = cursor.getMonth() !== month;
+        const isToday = cursor.getTime() === today.getTime();
+        const isWeekendDay = isWeekend(cursor);
+
+        let classes = 'calendar-cell';
+        if (isOutside) classes += ' outside';
+        if (isToday) classes += ' today';
+        if (isWeekendDay) classes += ' weekend';
+
+        // Find events for this date
+        const events = getCalendarEvents(cursor);
+        const eventsHtml = events.map(ev =>
+          `<div class="calendar-event ${ev.isStart ? 'phase-start' : ''} ${ev.eventClass}"
+                onclick="showPhaseDetail('${ev.phaseKey}')"
+                title="${escapeAttr(ev.text)}">${ev.text}</div>`
+        ).join('');
+
+        html += `<div class="${classes}">
+          <div class="calendar-date">${cursor.getDate()}</div>
+          <div class="calendar-events">${eventsHtml}</div>
+        </div>`;
+
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      document.getElementById('calendarGrid').innerHTML = html;
+    }
+
+    /**
+     * Get calendar events for a specific date.
+     */
+    function getCalendarEvents(date) {
+      const events = [];
+      const dateTime = date.getTime();
+
+      calculatedPhases.forEach(phase => {
+        const startTime = new Date(phase.startDate);
+        startTime.setHours(0, 0, 0, 0);
+        const endTime = new Date(phase.endDate);
+        endTime.setHours(0, 0, 0, 0);
+
+        if (dateTime === startTime.getTime()) {
+          events.push({
+            phaseKey: phase.key,
+            eventClass: phase.eventClass,
+            text: phase.name + ' Start',
+            isStart: true
+          });
         }
+
+        if (dateTime === endTime.getTime()) {
+          events.push({
+            phaseKey: phase.key,
+            eventClass: phase.eventClass,
+            text: phase.name + ' End',
+            isStart: false
+          });
+        }
+
+        // Show milestones distributed across the phase duration
+        if (dateTime > startTime.getTime() && dateTime < endTime.getTime() && !isWeekend(date)) {
+          const phaseDays = countBusinessDays(startTime, endTime);
+          const dayIndex = countBusinessDays(startTime, date);
+
+          phase.milestones.forEach((milestone, mIdx) => {
+            const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
+            if (dayIndex === milestoneDay) {
+              events.push({
+                phaseKey: phase.key,
+                eventClass: phase.eventClass,
+                text: milestone.label,
+                isStart: false
+              });
+            }
+          });
+        }
+      });
+
+      return events;
+    }
+
+    /* ================================================================
+       RENDERING - LEGEND
+       ================================================================ */
+
+    function renderLegend() {
+      const container = document.getElementById('legend');
+      container.innerHTML = PHASES.map(phase =>
+        `<div class="legend-item">
+          <div class="legend-swatch" style="background: ${phase.color};"></div>
+          ${phase.name}
+        </div>`
+      ).join('');
+    }
+
+    /* ================================================================
+       PHASE DETAIL PANEL
+       ================================================================ */
+
+    function showPhaseDetail(phaseKey) {
+      const phase = calculatedPhases.find(p => p.key === phaseKey);
+      if (!phase) return;
+
+      const milestonesHtml = phase.milestones.map(m => {
+        const subHtml = m.sub ? `<div class="milestone-sub">${m.sub}</div>` : '';
+        return `<li>
+          <span class="milestone-marker" style="background: ${phase.color};"></span>
+          <div>
+            <div class="milestone-text">${m.label}</div>
+            ${subHtml}
+          </div>
+        </li>`;
+      }).join('');
+
+      const panel = document.getElementById('detailPanel');
+      panel.innerHTML = `
+        <div class="detail-panel-header">
+          <h3 style="color: ${phase.color};">${phase.name}</h3>
+          <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
+        </div>
+        <div class="detail-meta">
+          <div class="detail-meta-item">
+            <span class="meta-label">Start Date</span>
+            <span class="meta-value">${formatDate(phase.startDate)}</span>
+          </div>
+          <div class="detail-meta-item">
+            <span class="meta-label">End Date</span>
+            <span class="meta-value">${formatDate(phase.endDate)}</span>
+          </div>
+          <div class="detail-meta-item">
+            <span class="meta-label">Duration</span>
+            <span class="meta-value">${phase.durationLabel}</span>
+          </div>
+          <div class="detail-meta-item">
+            <span class="meta-label">Range</span>
+            <span class="meta-value">${phase.rangeLabel}</span>
+          </div>
+          <div class="detail-meta-item">
+            <span class="meta-label">Business Days</span>
+            <span class="meta-value">${phase.businessDays}</span>
+          </div>
+        </div>
+        <h4 style="font-size: 0.8125rem; font-weight: 700; margin-bottom: 8px; color: var(--color-text-secondary);">MILESTONES</h4>
+        <ul class="milestones-list">${milestonesHtml}</ul>
+      `;
+      panel.classList.add('active');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeDetailPanel() {
+      document.getElementById('detailPanel').classList.remove('active');
+    }
+
+    /* ================================================================
+       TOOLTIP
+       ================================================================ */
+
+    function showTooltip(event, phaseKey) {
+      const phase = calculatedPhases.find(p => p.key === phaseKey);
+      if (!phase) return;
+
+      const milestonesHtml = phase.milestones.map(m =>
+        `<li>${m.label}</li>`
+      ).join('');
+
+      const tooltip = document.getElementById('tooltip');
+      tooltip.innerHTML = `
+        <div class="tooltip-title">${phase.name}</div>
+        <div class="tooltip-dates">${formatDate(phase.startDate)} - ${formatDate(phase.endDate)} (${phase.durationLabel})</div>
+        <ul class="tooltip-milestones">${milestonesHtml}</ul>
+      `;
+      tooltip.classList.add('active');
+      moveTooltip(event);
+    }
+
+    function moveTooltip(event) {
+      const tooltip = document.getElementById('tooltip');
+      const rect = tooltip.getBoundingClientRect();
+      let x = event.clientX + 12;
+      let y = event.clientY + 12;
+
+      if (x + rect.width > window.innerWidth - 12) {
+        x = event.clientX - rect.width - 12;
+      }
+      if (y + rect.height > window.innerHeight - 12) {
+        y = event.clientY - rect.height - 12;
+      }
+
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    }
+
+    function hideTooltip() {
+      document.getElementById('tooltip').classList.remove('active');
+    }
+
+    /* ================================================================
+       VIEW TOGGLE
+       ================================================================ */
+
+    function setView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+      document.getElementById('timelineView').classList.toggle('active', view === 'timeline');
+      document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
+
+      if (view === 'calendar' && calculatedPhases.length > 0) {
+        renderCalendar();
+      }
+    }
+
+    /* ================================================================
+       CALENDAR NAVIGATION
+       ================================================================ */
+
+    function navigateMonth(delta) {
+      if (!calendarMonth) return;
+      calendarMonth.setMonth(calendarMonth.getMonth() + delta);
+      renderCalendar();
+    }
+
+    /* ================================================================
+       EXPORT
+       ================================================================ */
+
+    function toggleExport() {
+      const dropdown = document.getElementById('exportDropdown');
+      dropdown.classList.toggle('active');
+    }
+
+    // Close export dropdown on outside click
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.export-menu')) {
+        document.getElementById('exportDropdown').classList.remove('active');
+      }
+    });
+
+    function exportCSV() {
+      if (calculatedPhases.length === 0) return;
+
+      const websiteType = document.getElementById('websiteType').value;
+      const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
+
+      let csv = 'Phase,Start Date,End Date,Business Days,Duration,Milestones\n';
+      calculatedPhases.forEach(phase => {
+        const milestones = phase.milestones.map(m => m.label).join('; ');
+        csv += `"${phase.name}","${formatDate(phase.startDate)}","${formatDate(phase.endDate)}",${phase.businessDays},"${phase.durationLabel}","${milestones}"\n`;
+      });
+
+      csv += `\nWebsite Type:,"${typeLabels[websiteType]}"\n`;
+      csv += `Project Start:,"${formatDate(projectStartDate)}"\n`;
+      csv += `Project End:,"${formatDate(projectEndDate)}"\n`;
+
+      downloadFile(csv, 'timeline-export.csv', 'text/csv');
+      document.getElementById('exportDropdown').classList.remove('active');
+    }
+
+    function exportJSON() {
+      if (calculatedPhases.length === 0) return;
+
+      const websiteType = document.getElementById('websiteType').value;
+      const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
+
+      const data = {
+        websiteType: typeLabels[websiteType],
+        projectStart: formatDate(projectStartDate),
+        projectEnd: formatDate(projectEndDate),
+        phases: calculatedPhases.map(phase => ({
+          name: phase.name,
+          startDate: formatDate(phase.startDate),
+          endDate: formatDate(phase.endDate),
+          businessDays: phase.businessDays,
+          duration: phase.durationLabel,
+          milestones: phase.milestones.map(m => ({
+            label: m.label,
+            ...(m.sub ? { detail: m.sub } : {})
+          }))
+        }))
       };
 
-      projects.unshift(newProject);
-      saveToStorage();
-      closeAddModal();
-      render();
+      downloadFile(JSON.stringify(data, null, 2), 'timeline-export.json', 'application/json');
+      document.getElementById('exportDropdown').classList.remove('active');
     }
 
-    function deleteProject(id) {
-      if (!confirm('Remove this project from the dashboard?')) return;
-      projects = projects.filter(p => p.id !== id);
-      saveToStorage();
-      render();
+    function downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
-    function updateField(projectId, field, value) {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) return;
-      project[field] = value;
-      saveToStorage();
+    /* ================================================================
+       UTILITY
+       ================================================================ */
+
+    function escapeAttr(str) {
+      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
     }
 
-    function updatePhase(projectId, phaseKey, value) {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) return;
+    /* ================================================================
+       INITIALIZATION
+       ================================================================ */
 
-      project.phases[phaseKey] = parseInt(value, 10);
-      saveToStorage();
+    (function init() {
+      // Set default start date to today
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('startDate').value = `${yyyy}-${mm}-${dd}`;
 
-      // Update the displayed percentage and overall without full re-render
-      const card = document.querySelector(`[oninput*="'${projectId}', '${phaseKey}'"]`).closest('.project-card');
+      // Set calendar month
+      calendarMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      // Update phase percentage text
-      const phaseItem = document.querySelector(`[oninput*="'${projectId}', '${phaseKey}'"]`).closest('.phase-item');
-      phaseItem.querySelector('.phase-pct').textContent = value + '%';
-      phaseItem.querySelector('.phase-bar-fill').style.width = value + '%';
-
-      // Update overall
-      const overall = getOverallProgress(project);
-      card.querySelector('.project-overall-pct').textContent = overall + '%';
-      card.querySelector('.overall-bar-fill').style.width = overall + '%';
-
-      // Update summary bar
-      renderSummary();
-    }
-
-    // --- Keyboard ---
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAddModal();
-      if (e.key === 'Enter' && document.getElementById('addModal').classList.contains('active')) {
-        saveProject();
-      }
-    });
-
-    // Click outside modal to close
-    document.getElementById('addModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('addModal')) {
-        closeAddModal();
-      }
-    });
-
-    // --- Init ---
-    loadProjects();
-    render();
+      // Initial calculation
+      recalculate();
+    })();
   </script>
 </body>
 </html>
