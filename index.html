@@ -1074,14 +1074,6 @@
     <div class="controls-panel">
       <div class="controls-row">
         <div class="control-group">
-          <label for="websiteType">Website Type</label>
-          <select id="websiteType" onchange="recalculate()">
-            <option value="template">Template</option>
-            <option value="semiCustom">Semi-Custom</option>
-            <option value="fullyCustom">Fully Custom</option>
-          </select>
-        </div>
-        <div class="control-group">
           <label for="startDate">Start Date</label>
           <input type="date" id="startDate" onchange="recalculate()">
         </div>
@@ -1159,26 +1151,19 @@
     */
 
     const PHASE_DURATIONS = {
-      template: {
-        designPlanning:      { min: 5,  max: 10 },  // 1-2 weeks
-        developmentContent:  { min: 10, max: 15 },  // 2-3 weeks
-        qaContentUpload:     { min: 2,  max: 3  },  // 2-3 days
-        audits:              { min: 20, max: 25 },  // 4-5 weeks
-        preLaunchLaunch:     { min: 5,  max: 5  }   // ~1 week
+      '3month': {
+        designPlanning:      15,  // 3 weeks
+        developmentContent:  10,  // 2 weeks
+        qaContentUpload:     5,   // 1 week
+        audits:              25,  // 5 weeks
+        preLaunchLaunch:     5    // 1 week
       },
-      semiCustom: {
-        designPlanning:      { min: 10, max: 15 },  // 2-3 weeks
-        developmentContent:  { min: 10, max: 20 },  // 2-4 weeks
-        qaContentUpload:     { min: 5,  max: 5  },  // ~1 week
-        audits:              { min: 15, max: 20 },  // 3-4 weeks
-        preLaunchLaunch:     { min: 5,  max: 5  }   // ~1 week
-      },
-      fullyCustom: {
-        designPlanning:      { min: 15, max: 20 },  // 3-4 weeks
-        developmentContent:  { min: 20, max: 30 },  // 4-6 weeks
-        qaContentUpload:     { min: 5,  max: 10 },  // 1-2 weeks
-        audits:              { min: 10, max: 15 },  // 2-3 weeks
-        preLaunchLaunch:     { min: 5,  max: 5  }   // ~1 week
+      '4month': {
+        designPlanning:      25,  // 5 weeks
+        developmentContent:  20,  // 4 weeks
+        qaContentUpload:     10,  // 2 weeks
+        audits:              20,  // 4 weeks
+        preLaunchLaunch:     5    // 1 week
       }
     };
 
@@ -1341,15 +1326,6 @@
       return d;
     }
 
-    /**
-     * Resolve duration based on timeline mode.
-     * 3-Month → min (lower estimate)
-     * 4-Month → max (higher estimate)
-     */
-    function resolveDuration(durationConfig, mode) {
-      return mode === '3month' ? durationConfig.min : durationConfig.max;
-    }
-
     function formatDuration(businessDays) {
       if (businessDays < 5) {
         return businessDays === 1 ? '1 day' : businessDays + ' days';
@@ -1361,21 +1337,11 @@
       return weeks.toFixed(1) + ' weeks';
     }
 
-    function formatDurationRange(durationConfig) {
-      const minLabel = formatDuration(durationConfig.min);
-      const maxLabel = formatDuration(durationConfig.max);
-      if (durationConfig.min === durationConfig.max) {
-        return '~' + minLabel;
-      }
-      return minLabel + ' \u2013 ' + maxLabel;
-    }
-
     /* ================================================================
        CALCULATION ENGINE
        ================================================================ */
 
     function recalculate() {
-      const websiteType = document.getElementById('websiteType').value;
       const startDateInput = document.getElementById('startDate').value;
 
       if (!startDateInput) return;
@@ -1390,13 +1356,12 @@
 
       projectStartDate = new Date(adjustedStart);
 
-      const durations = PHASE_DURATIONS[websiteType];
+      const durations = PHASE_DURATIONS[timelineMode];
       calculatedPhases = [];
       let currentStart = new Date(adjustedStart);
 
       PHASES.forEach(phase => {
-        const durationConfig = durations[phase.key];
-        const businessDays = resolveDuration(durationConfig, timelineMode);
+        const businessDays = durations[phase.key];
         const endDate = addBusinessDays(currentStart, businessDays);
 
         calculatedPhases.push({
@@ -1404,8 +1369,7 @@
           startDate: new Date(currentStart),
           endDate: new Date(endDate),
           businessDays,
-          durationLabel: formatDuration(businessDays),
-          rangeLabel: formatDurationRange(durationConfig)
+          durationLabel: formatDuration(businessDays)
         });
 
         // Next phase starts the next business day after end
@@ -1430,9 +1394,8 @@
       }
 
       // Update mode label
-      const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
       document.getElementById('timelineModeLabel').textContent =
-        typeLabels[websiteType] + ' \u00B7 ' + (timelineMode === '3month' ? '3-Month' : '4-Month') + ' Timeline';
+        (timelineMode === '3month' ? '3-Month' : '4-Month') + ' Timeline';
 
       renderSummary();
       renderTimeline();
@@ -1552,7 +1515,7 @@
           <div class="gantt-row-label">
             <div class="phase-name">${phase.name}</div>
             <div class="phase-dates">${formatDateShort(phase.startDate)} \u2013 ${formatDateShort(phase.endDate)}</div>
-            <div class="phase-duration">${phase.durationLabel} (${phase.rangeLabel})</div>
+            <div class="phase-duration">${phase.durationLabel}</div>
           </div>
           <div class="gantt-row-timeline">
             <div class="gantt-grid-lines">${gridLines}</div>
@@ -1793,10 +1756,6 @@
             <span class="meta-value">${phase.durationLabel}</span>
           </div>
           <div class="detail-meta-item">
-            <span class="meta-label">Range</span>
-            <span class="meta-value">${phase.rangeLabel}</span>
-          </div>
-          <div class="detail-meta-item">
             <span class="meta-label">Business Days</span>
             <span class="meta-value">${phase.businessDays}</span>
           </div>
@@ -1899,8 +1858,6 @@
     function exportCSV() {
       if (calculatedPhases.length === 0) return;
 
-      const websiteType = document.getElementById('websiteType').value;
-      const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
       const modeLabel = timelineMode === '3month' ? '3-Month Timeline' : '4-Month Timeline';
 
       let csv = 'Phase,Start Date,End Date,Business Days,Duration,Milestones\n';
@@ -1909,8 +1866,7 @@
         csv += `"${phase.name}","${formatDate(phase.startDate)}","${formatDate(phase.endDate)}",${phase.businessDays},"${phase.durationLabel}","${milestones}"\n`;
       });
 
-      csv += `\nWebsite Type:,"${typeLabels[websiteType]}"\n`;
-      csv += `Timeline Mode:,"${modeLabel}"\n`;
+      csv += `\nTimeline Mode:,"${modeLabel}"\n`;
       csv += `Project Start:,"${formatDate(projectStartDate)}"\n`;
       csv += `Project End:,"${formatDate(projectEndDate)}"\n`;
       csv += `\nNote:,"Business days exclude weekends (Saturday & Sunday)"\n`;
@@ -1922,11 +1878,7 @@
     function exportJSON() {
       if (calculatedPhases.length === 0) return;
 
-      const websiteType = document.getElementById('websiteType').value;
-      const typeLabels = { template: 'Template', semiCustom: 'Semi-Custom', fullyCustom: 'Fully Custom' };
-
       const data = {
-        websiteType: typeLabels[websiteType],
         timelineMode: timelineMode === '3month' ? '3-Month Timeline' : '4-Month Timeline',
         projectStart: formatDate(projectStartDate),
         projectEnd: formatDate(projectEndDate),
@@ -1937,7 +1889,6 @@
           endDate: formatDate(phase.endDate),
           businessDays: phase.businessDays,
           duration: phase.durationLabel,
-          durationRange: phase.rangeLabel,
           milestones: phase.milestones.map(m => ({
             label: m.label,
             ...(m.sub ? { detail: m.sub } : {})
