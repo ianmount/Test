@@ -1185,10 +1185,9 @@
         color: 'var(--phase-2)',
         colorHex: '#f59e0b',
         milestones: [
-          { label: 'Secondary Page Development' },
-          { label: 'Content Document Creation' },
-          { label: 'Internal Content Reviews', sub: 'Marketing Director / Marketing Coordinator' },
-          { label: 'SEO Team Review', sub: 'Copy only' }
+          { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
+          { label: 'Content Doc Formatting (MC)', durationDays: 2 },
+          { label: 'Copywriting + Content Doc Prep' }
         ]
       },
       {
@@ -1214,10 +1213,10 @@
         color: 'var(--phase-4)',
         colorHex: '#ef4444',
         milestones: [
-          { label: 'Internal Audits' },
-          { label: 'Internal Revisions' },
-          { label: 'Partner Audits' },
-          { label: 'Partner Revisions' }
+          { label: 'Internal Audits', durationDays: 5 },
+          { label: 'Partner Audit 1', durationDays: 5 },
+          { label: 'SEO Site Audit', durationDays: 2 },
+          { label: 'Partner Audit 2' }
         ]
       },
       {
@@ -1350,6 +1349,30 @@
        CALCULATION ENGINE
        ================================================================ */
 
+    /**
+     * For phases whose milestones carry a `durationDays` property, compute
+     * concrete startDate / endDate for each sub-milestone.
+     * Milestones without `durationDays` consume the remainder of the phase.
+     */
+    function computeMilestoneDates(milestones, phaseStart, phaseEnd) {
+      let offset = 0; // cumulative business days already allocated
+      return milestones.map(m => {
+        const mStart = offset === 0
+          ? new Date(phaseStart)
+          : addBusinessDays(phaseStart, offset);
+
+        let mEnd;
+        if (m.durationDays !== undefined) {
+          mEnd = addBusinessDays(phaseStart, offset + m.durationDays - 1);
+          offset += m.durationDays;
+        } else {
+          mEnd = new Date(phaseEnd);
+        }
+
+        return { ...m, startDate: mStart, endDate: mEnd };
+      });
+    }
+
     function recalculate() {
       const startDateInput = document.getElementById('startDate').value;
 
@@ -1373,8 +1396,15 @@
         const businessDays = resolveDuration(durationConfig, timelineMode);
         const endDate = addBusinessDays(currentStart, businessDays);
 
+        // Enrich milestone dates for phases that define sub-milestone durations
+        const hasDurationMilestones = phase.milestones.some(m => m.durationDays !== undefined);
+        const milestones = hasDurationMilestones
+          ? computeMilestoneDates(phase.milestones, currentStart, endDate)
+          : phase.milestones;
+
         calculatedPhases.push({
           ...phase,
+          milestones,
           startDate: new Date(currentStart),
           endDate: new Date(endDate),
           businessDays,
@@ -1678,16 +1708,33 @@
           title = phase.shortName + ' (continued)';
         } else if (!isWeekend(date)) {
           // Check for milestones on this business day
-          const phaseDays = countBusinessDays(startTime, endTime);
-          const dayIndex = countBusinessDays(startTime, date);
+          const hasDatedMilestones = phase.milestones.some(m => m.startDate);
 
-          phase.milestones.forEach((milestone, mIdx) => {
-            const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
-            if (dayIndex === milestoneDay) {
-              label = milestone.label;
-              title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
-            }
-          });
+          if (hasDatedMilestones) {
+            // Use computed start dates — show each sub-milestone label on its first day
+            // (skip index 0 since the phase start day already shows the phase name)
+            phase.milestones.forEach((milestone, mIdx) => {
+              if (!milestone.startDate) return;
+              const mStartTime = new Date(milestone.startDate);
+              mStartTime.setHours(0, 0, 0, 0);
+              if (mIdx > 0 && dateTime === mStartTime.getTime()) {
+                label = milestone.label;
+                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+              }
+            });
+          } else {
+            // Legacy: evenly-spaced milestone positioning
+            const phaseDays = countBusinessDays(startTime, endTime);
+            const dayIndex = countBusinessDays(startTime, date);
+
+            phase.milestones.forEach((milestone, mIdx) => {
+              const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
+              if (dayIndex === milestoneDay) {
+                label = milestone.label;
+                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+              }
+            });
+          }
         }
 
         bars.push({
@@ -1737,11 +1784,14 @@
 
       const milestonesHtml = phase.milestones.map(m => {
         const subHtml = m.sub ? `<div class="milestone-sub">${m.sub}</div>` : '';
+        const dateRangeHtml = (m.startDate && m.endDate)
+          ? `<div class="milestone-sub">${formatDate(m.startDate)} \u2013 ${formatDate(m.endDate)}</div>`
+          : '';
         return `<li>
           <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
           <div>
             <div class="milestone-text">${m.label}</div>
-            ${subHtml}
+            ${dateRangeHtml}${subHtml}
           </div>
         </li>`;
       }).join('');
