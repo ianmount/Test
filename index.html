@@ -855,27 +855,73 @@
       gap: 2px;
     }
 
-    .calendar-event {
+    /* Phase range bar - spans every day within a phase */
+    .calendar-range-bar {
       font-size: 0.5625rem;
       font-weight: 600;
-      padding: 2px 5px;
-      border-radius: 3px;
+      padding: 3px 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       cursor: pointer;
       transition: filter 0.15s;
+      margin-left: -8px;
+      margin-right: -8px;
+      min-height: 18px;
+      display: flex;
+      align-items: center;
     }
 
-    .calendar-event:hover { filter: brightness(1.2); }
+    .calendar-range-bar:hover { filter: brightness(1.2); }
 
-    .calendar-event.phase-start { border-left: 3px solid; }
+    /* Range position variants for continuous look */
+    .calendar-range-bar.range-start {
+      margin-left: 0;
+      border-radius: 3px 0 0 3px;
+      padding-left: 6px;
+    }
 
-    .calendar-event.ev-1 { background: var(--phase-1-bg); color: var(--phase-1); border-color: var(--phase-1); }
-    .calendar-event.ev-2 { background: var(--phase-2-bg); color: var(--phase-2); border-color: var(--phase-2); }
-    .calendar-event.ev-3 { background: var(--phase-3-bg); color: var(--phase-3); border-color: var(--phase-3); }
-    .calendar-event.ev-4 { background: var(--phase-4-bg); color: var(--phase-4); border-color: var(--phase-4); }
-    .calendar-event.ev-5 { background: var(--phase-5-bg); color: var(--phase-5); border-color: var(--phase-5); }
+    .calendar-range-bar.range-end {
+      margin-right: 0;
+      border-radius: 0 3px 3px 0;
+      padding-right: 6px;
+    }
+
+    .calendar-range-bar.range-start.range-end {
+      border-radius: 3px;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    .calendar-range-bar.range-middle {
+      border-radius: 0;
+    }
+
+    /* Milestone label within a range bar */
+    .calendar-range-bar .range-milestone {
+      font-weight: 700;
+      font-size: 0.5625rem;
+      opacity: 0.95;
+    }
+
+    /* Phase colors for range bars */
+    .calendar-range-bar.ev-1 { background: var(--phase-1-bg); color: var(--phase-1); border-top: 1px solid var(--phase-1-border); border-bottom: 1px solid var(--phase-1-border); }
+    .calendar-range-bar.ev-2 { background: var(--phase-2-bg); color: var(--phase-2); border-top: 1px solid var(--phase-2-border); border-bottom: 1px solid var(--phase-2-border); }
+    .calendar-range-bar.ev-3 { background: var(--phase-3-bg); color: var(--phase-3); border-top: 1px solid var(--phase-3-border); border-bottom: 1px solid var(--phase-3-border); }
+    .calendar-range-bar.ev-4 { background: var(--phase-4-bg); color: var(--phase-4); border-top: 1px solid var(--phase-4-border); border-bottom: 1px solid var(--phase-4-border); }
+    .calendar-range-bar.ev-5 { background: var(--phase-5-bg); color: var(--phase-5); border-top: 1px solid var(--phase-5-border); border-bottom: 1px solid var(--phase-5-border); }
+
+    .calendar-range-bar.range-start.ev-1 { border-left: 3px solid var(--phase-1); }
+    .calendar-range-bar.range-start.ev-2 { border-left: 3px solid var(--phase-2); }
+    .calendar-range-bar.range-start.ev-3 { border-left: 3px solid var(--phase-3); }
+    .calendar-range-bar.range-start.ev-4 { border-left: 3px solid var(--phase-4); }
+    .calendar-range-bar.range-start.ev-5 { border-left: 3px solid var(--phase-5); }
+
+    .calendar-range-bar.range-end.ev-1 { border-right: 1px solid var(--phase-1-border); }
+    .calendar-range-bar.range-end.ev-2 { border-right: 1px solid var(--phase-2-border); }
+    .calendar-range-bar.range-end.ev-3 { border-right: 1px solid var(--phase-3-border); }
+    .calendar-range-bar.range-end.ev-4 { border-right: 1px solid var(--phase-4-border); }
+    .calendar-range-bar.range-end.ev-5 { border-right: 1px solid var(--phase-5-border); }
 
     /* ===== Tooltip ===== */
     .tooltip {
@@ -1574,16 +1620,23 @@
         if (isToday) cls += ' today';
         if (isWknd) cls += ' weekend';
 
-        const events = getCalendarEvents(cur);
-        const eventsHtml = events.map(ev =>
-          `<div class="calendar-event ${ev.isStart ? 'phase-start' : ''} ${ev.eventClass}"
-                onclick="showPhaseDetail('${ev.phaseKey}')"
-                title="${esc(ev.text)}">${ev.text}</div>`
-        ).join('');
+        const rangeBars = getCalendarRangeBars(cur);
+        const barsHtml = rangeBars.map(bar => {
+          const posCls = bar.position === 'start' ? 'range-start'
+            : bar.position === 'end' ? 'range-end'
+            : bar.position === 'single' ? 'range-start range-end'
+            : 'range-middle';
+          const label = bar.label
+            ? `<span class="range-milestone">${bar.label}</span>`
+            : '';
+          return `<div class="calendar-range-bar ${posCls} ${bar.eventClass}"
+                onclick="showPhaseDetail('${bar.phaseKey}')"
+                title="${esc(bar.title)}">${label}</div>`;
+        }).join('');
 
         html += `<div class="${cls}">
           <div class="calendar-date">${cur.getDate()}</div>
-          <div class="calendar-events">${eventsHtml}</div>
+          <div class="calendar-events">${barsHtml}</div>
         </div>`;
 
         cur.setDate(cur.getDate() + 1);
@@ -1595,9 +1648,15 @@
       renderCalendarLegend();
     }
 
-    function getCalendarEvents(date) {
-      const events = [];
+    /**
+     * Get phase range bars for a specific calendar date.
+     * Returns a bar for each phase that spans this date,
+     * with position info (start/middle/end/single) and any milestone label.
+     */
+    function getCalendarRangeBars(date) {
+      const bars = [];
       const dateTime = date.getTime();
+      const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
 
       calculatedPhases.forEach(phase => {
         const startTime = new Date(phase.startDate);
@@ -1605,44 +1664,69 @@
         const endTime = new Date(phase.endDate);
         endTime.setHours(0, 0, 0, 0);
 
-        if (dateTime === startTime.getTime()) {
-          events.push({
-            phaseKey: phase.key,
-            eventClass: phase.eventClass,
-            text: phase.shortName + ' Start',
-            isStart: true
-          });
+        // Only show bar if this date falls within the phase range (inclusive)
+        if (dateTime < startTime.getTime() || dateTime > endTime.getTime()) return;
+
+        const isPhaseStart = dateTime === startTime.getTime();
+        const isPhaseEnd = dateTime === endTime.getTime();
+
+        // Account for calendar row boundaries: Sunday (left edge), Saturday (right edge)
+        const isRowStart = dayOfWeek === 0;
+        const isRowEnd = dayOfWeek === 6;
+
+        // Visual position: round corners at phase boundaries AND row boundaries
+        const visualStart = isPhaseStart || isRowStart;
+        const visualEnd = isPhaseEnd || isRowEnd;
+
+        let position;
+        if (visualStart && visualEnd) {
+          position = 'single';
+        } else if (visualStart) {
+          position = 'start';
+        } else if (visualEnd) {
+          position = 'end';
+        } else {
+          position = 'middle';
         }
 
-        if (dateTime === endTime.getTime()) {
-          events.push({
-            phaseKey: phase.key,
-            eventClass: phase.eventClass,
-            text: phase.shortName + ' End',
-            isStart: false
-          });
-        }
+        // Determine label to show in the bar
+        let label = '';
+        let title = phase.shortName;
 
-        // Show milestones distributed evenly within the phase
-        if (dateTime > startTime.getTime() && dateTime < endTime.getTime() && !isWeekend(date)) {
+        if (isPhaseStart) {
+          label = phase.shortName;
+          title = phase.shortName + ' Start \u2014 ' + formatDateShort(phase.startDate);
+        } else if (isPhaseEnd) {
+          label = 'End';
+          title = phase.shortName + ' End \u2014 ' + formatDateShort(phase.endDate);
+        } else if (isRowStart && !isWeekend(date)) {
+          // Show phase name at start of each new row for context
+          label = phase.shortName;
+          title = phase.shortName + ' (continued)';
+        } else if (!isWeekend(date)) {
+          // Check for milestones on this business day
           const phaseDays = countBusinessDays(startTime, endTime);
           const dayIndex = countBusinessDays(startTime, date);
 
           phase.milestones.forEach((milestone, mIdx) => {
             const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
             if (dayIndex === milestoneDay) {
-              events.push({
-                phaseKey: phase.key,
-                eventClass: phase.eventClass,
-                text: milestone.label,
-                isStart: false
-              });
+              label = milestone.label;
+              title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
             }
           });
         }
+
+        bars.push({
+          phaseKey: phase.key,
+          eventClass: phase.eventClass,
+          position,
+          label,
+          title
+        });
       });
 
-      return events;
+      return bars;
     }
 
     /* ================================================================
