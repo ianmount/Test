@@ -904,6 +904,28 @@
       opacity: 0.95;
     }
 
+    /* Milestone sub-bar: slightly smaller and indented to show hierarchy */
+    .calendar-range-bar.milestone-bar {
+      min-height: 14px;
+      font-size: 0.5rem;
+      opacity: 0.82;
+      margin-left: -4px;
+      margin-right: -4px;
+    }
+    .calendar-range-bar.milestone-bar.range-start {
+      margin-left: 6px;
+      border-radius: 3px 0 0 3px;
+    }
+    .calendar-range-bar.milestone-bar.range-end {
+      margin-right: 0;
+      border-radius: 0 3px 3px 0;
+    }
+    .calendar-range-bar.milestone-bar.range-start.range-end {
+      border-radius: 3px;
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+
     /* Phase colors for range bars */
     .calendar-range-bar.ev-1 { background: var(--phase-1-bg); color: var(--phase-1); border-top: 1px solid var(--phase-1-border); border-bottom: 1px solid var(--phase-1-border); }
     .calendar-range-bar.ev-2 { background: var(--phase-2-bg); color: var(--phase-2); border-top: 1px solid var(--phase-2-border); border-bottom: 1px solid var(--phase-2-border); }
@@ -1187,7 +1209,9 @@
         milestones: [
           { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
           { label: 'Content Doc Formatting (MC)', durationDays: 2 },
-          { label: 'Copywriting + Content Doc Prep' }
+          { label: 'Copywriting + Content Doc Prep' },
+          { label: 'SEO Copy Audit', daysBeforeEnd: 5, singleDay: true },
+          { label: 'Content Document Handoff', daysBeforeEnd: 0, singleDay: true }
         ]
       },
       {
@@ -1200,7 +1224,6 @@
         colorHex: '#10b981',
         milestones: [
           { label: 'Development QA Testing' },
-          { label: 'Content Document Handoff', singleDay: true },
           { label: 'Content Upload', noDate: true }
         ]
       },
@@ -1355,8 +1378,22 @@
      * Milestones without `durationDays` consume the remainder of the phase.
      */
     function computeMilestoneDates(milestones, phaseStart, phaseEnd) {
+      // Total business days from phaseStart up to (not including) phaseEnd
+      const totalBizDays = countBusinessDays(phaseStart, phaseEnd);
       let offset = 0; // cumulative business days already allocated
+
       return milestones.map(m => {
+        // Milestones with daysBeforeEnd are anchored to the phase end,
+        // independent of the sequential offset from the start.
+        if (m.daysBeforeEnd !== undefined) {
+          const startOffset = totalBizDays - m.daysBeforeEnd;
+          const mStart = startOffset <= 0
+            ? new Date(phaseStart)
+            : addBusinessDays(phaseStart, startOffset);
+          const mEnd = new Date(mStart); // always single-day
+          return { ...m, startDate: mStart, endDate: mEnd };
+        }
+
         const mStart = offset === 0
           ? new Date(phaseStart)
           : addBusinessDays(phaseStart, offset);
@@ -1400,7 +1437,9 @@
         const endDate = addBusinessDays(currentStart, businessDays);
 
         // Enrich milestone dates for phases that define sub-milestone durations
-        const hasDurationMilestones = phase.milestones.some(m => m.durationDays !== undefined || m.singleDay);
+        const hasDurationMilestones = phase.milestones.some(
+          m => m.durationDays !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
+        );
         const milestones = hasDurationMilestones
           ? computeMilestoneDates(phase.milestones, currentStart, endDate)
           : phase.milestones;
@@ -1632,10 +1671,11 @@
             : bar.position === 'end' ? 'range-end'
             : bar.position === 'single' ? 'range-start range-end'
             : 'range-middle';
+          const milestoneCls = bar.isMilestoneBar ? ' milestone-bar' : '';
           const label = bar.label
             ? `<span class="range-milestone">${bar.label}</span>`
             : '';
-          return `<div class="calendar-range-bar ${posCls} ${bar.eventClass}"
+          return `<div class="calendar-range-bar ${posCls} ${bar.eventClass}${milestoneCls}"
                 onclick="showPhaseDetail('${bar.phaseKey}')"
                 title="${esc(bar.title)}">${label}</div>`;
         }).join('');
@@ -1695,9 +1735,11 @@
           position = 'middle';
         }
 
-        // Determine label to show in the bar
+        // Determine label to show in the phase bar
         let label = '';
         let title = phase.shortName;
+
+        const hasDatedMilestones = phase.milestones.some(m => m.startDate);
 
         if (isPhaseStart) {
           label = phase.shortName;
@@ -1709,35 +1751,18 @@
           // Show phase name at start of each new row for context
           label = phase.shortName;
           title = phase.shortName + ' (continued)';
-        } else if (!isWeekend(date)) {
-          // Check for milestones on this business day
-          const hasDatedMilestones = phase.milestones.some(m => m.startDate);
+        } else if (!isWeekend(date) && !hasDatedMilestones) {
+          // Legacy: evenly-spaced milestone label on phase bar (only when no computed dates)
+          const phaseDays = countBusinessDays(startTime, endTime);
+          const dayIndex = countBusinessDays(startTime, date);
 
-          if (hasDatedMilestones) {
-            // Use computed start dates — show each sub-milestone label on its first day
-            // (skip index 0 since the phase start day already shows the phase name)
-            phase.milestones.forEach((milestone, mIdx) => {
-              if (!milestone.startDate) return;
-              const mStartTime = new Date(milestone.startDate);
-              mStartTime.setHours(0, 0, 0, 0);
-              if (mIdx > 0 && dateTime === mStartTime.getTime()) {
-                label = milestone.label;
-                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
-              }
-            });
-          } else {
-            // Legacy: evenly-spaced milestone positioning
-            const phaseDays = countBusinessDays(startTime, endTime);
-            const dayIndex = countBusinessDays(startTime, date);
-
-            phase.milestones.forEach((milestone, mIdx) => {
-              const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
-              if (dayIndex === milestoneDay) {
-                label = milestone.label;
-                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
-              }
-            });
-          }
+          phase.milestones.forEach((milestone, mIdx) => {
+            const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
+            if (dayIndex === milestoneDay) {
+              label = milestone.label;
+              title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+            }
+          });
         }
 
         bars.push({
@@ -1745,8 +1770,59 @@
           eventClass: phase.eventClass,
           position,
           label,
-          title
+          title,
+          isMilestoneBar: false
         });
+
+        // Add a sub-bar for each milestone that has computed date ranges
+        if (hasDatedMilestones && !isWeekend(date)) {
+          phase.milestones.forEach(milestone => {
+            if (!milestone.startDate || milestone.noDate) return;
+
+            const mStartTime = new Date(milestone.startDate);
+            mStartTime.setHours(0, 0, 0, 0);
+            const mEndTime = new Date(milestone.endDate);
+            mEndTime.setHours(0, 0, 0, 0);
+
+            if (dateTime < mStartTime.getTime() || dateTime > mEndTime.getTime()) return;
+
+            const isMStart = dateTime === mStartTime.getTime();
+            const isMEnd = dateTime === mEndTime.getTime();
+
+            const mVisualStart = isMStart || isRowStart;
+            const mVisualEnd = isMEnd || isRowEnd;
+
+            let mPosition;
+            if (mVisualStart && mVisualEnd) mPosition = 'single';
+            else if (mVisualStart) mPosition = 'start';
+            else if (mVisualEnd) mPosition = 'end';
+            else mPosition = 'middle';
+
+            let mLabel = '';
+            let mTitle = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+
+            if (isMStart) {
+              mLabel = milestone.label;
+              if (milestone.singleDay || mStartTime.getTime() === mEndTime.getTime()) {
+                mTitle += ' (' + formatDateShort(milestone.startDate) + ')';
+              } else {
+                mTitle += ' (' + formatDateShort(milestone.startDate) + ' \u2013 ' + formatDateShort(milestone.endDate) + ')';
+              }
+            } else if (isRowStart) {
+              mLabel = milestone.label;
+              mTitle += ' (continued)';
+            }
+
+            bars.push({
+              phaseKey: phase.key,
+              eventClass: phase.eventClass,
+              position: mPosition,
+              label: mLabel,
+              title: mTitle,
+              isMilestoneBar: true
+            });
+          });
+        }
       });
 
       return bars;
