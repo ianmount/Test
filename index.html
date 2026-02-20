@@ -1171,9 +1171,9 @@
         color: 'var(--phase-1)',
         colorHex: '#8b5cf6',
         milestones: [
-          { label: 'Internal Review' },
+          { label: 'Internal Review', durationDays: 5 },
           { label: 'Partner Review' },
-          { label: 'Campaign Strategy Trigger', sub: 'After SEO Keywords approval' }
+          { label: 'Campaign Strategy Trigger', sub: 'After SEO Keywords approval', singleDay: true }
         ]
       },
       {
@@ -1200,8 +1200,8 @@
         colorHex: '#10b981',
         milestones: [
           { label: 'Development QA Testing' },
-          { label: 'Content Document Handoff' },
-          { label: 'Content Upload' }
+          { label: 'Content Document Handoff', singleDay: true },
+          { label: 'Content Upload', noDate: true }
         ]
       },
       {
@@ -1337,12 +1337,12 @@
     }
 
     function formatDurationRange(durationConfig) {
-      const minLabel = formatDuration(durationConfig.min);
-      const maxLabel = formatDuration(durationConfig.max);
-      if (durationConfig.min === durationConfig.max) {
-        return '~' + minLabel;
+      const lo = Math.min(durationConfig.min, durationConfig.max);
+      const hi = Math.max(durationConfig.min, durationConfig.max);
+      if (lo === hi) {
+        return '~' + formatDuration(lo);
       }
-      return minLabel + ' \u2013 ' + maxLabel;
+      return formatDuration(lo) + ' \u2013 ' + formatDuration(hi);
     }
 
     /* ================================================================
@@ -1362,7 +1362,10 @@
           : addBusinessDays(phaseStart, offset);
 
         let mEnd;
-        if (m.durationDays !== undefined) {
+        if (m.singleDay) {
+          // Point-in-time marker: start and end are the same day, offset does not advance
+          mEnd = new Date(mStart);
+        } else if (m.durationDays !== undefined) {
           mEnd = addBusinessDays(phaseStart, offset + m.durationDays - 1);
           offset += m.durationDays;
         } else {
@@ -1397,7 +1400,7 @@
         const endDate = addBusinessDays(currentStart, businessDays);
 
         // Enrich milestone dates for phases that define sub-milestone durations
-        const hasDurationMilestones = phase.milestones.some(m => m.durationDays !== undefined);
+        const hasDurationMilestones = phase.milestones.some(m => m.durationDays !== undefined || m.singleDay);
         const milestones = hasDurationMilestones
           ? computeMilestoneDates(phase.milestones, currentStart, endDate)
           : phase.milestones;
@@ -1784,9 +1787,12 @@
 
       const milestonesHtml = phase.milestones.map(m => {
         const subHtml = m.sub ? `<div class="milestone-sub">${m.sub}</div>` : '';
-        const dateRangeHtml = (m.startDate && m.endDate)
-          ? `<div class="milestone-sub">${formatDate(m.startDate)} \u2013 ${formatDate(m.endDate)}</div>`
-          : '';
+        let dateRangeHtml = '';
+        if (!m.noDate && m.startDate && m.endDate) {
+          dateRangeHtml = m.singleDay
+            ? `<div class="milestone-sub">${formatDate(m.startDate)}</div>`
+            : `<div class="milestone-sub">${formatDate(m.startDate)} \u2013 ${formatDate(m.endDate)}</div>`;
+        }
         return `<li>
           <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
           <div>
