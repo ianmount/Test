@@ -1185,10 +1185,9 @@
         color: 'var(--phase-2)',
         colorHex: '#f59e0b',
         milestones: [
-          { label: 'Secondary Page Development' },
-          { label: 'Content Document Creation' },
-          { label: 'Internal Content Reviews', sub: 'Marketing Director / Marketing Coordinator' },
-          { label: 'SEO Team Review', sub: 'Copy only' }
+          { label: 'Content Doc Formatting (Dev)', days: 2 },
+          { label: 'Content Doc Formatting (MC)', days: 2 },
+          { label: 'Copywriting + Content Doc Prep', days: 'remainder' }
         ]
       },
       {
@@ -1214,10 +1213,10 @@
         color: 'var(--phase-4)',
         colorHex: '#ef4444',
         milestones: [
-          { label: 'Internal Audits' },
-          { label: 'Internal Revisions' },
-          { label: 'Partner Audits' },
-          { label: 'Partner Revisions' }
+          { label: 'Internal Audits', days: 5 },
+          { label: 'Partner Audit 1', days: 5 },
+          { label: 'SEO Site Audit', days: 2 },
+          { label: 'Partner Audit 2', days: 'remainder' }
         ]
       },
       {
@@ -1681,13 +1680,27 @@
           const phaseDays = countBusinessDays(startTime, endTime);
           const dayIndex = countBusinessDays(startTime, date);
 
-          phase.milestones.forEach((milestone, mIdx) => {
-            const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
-            if (dayIndex === milestoneDay) {
-              label = milestone.label;
-              title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
-            }
-          });
+          // Use days-based positioning if milestones have days property
+          const hasDays = phase.milestones.length > 0 && phase.milestones[0].days !== undefined;
+          if (hasDays) {
+            let cumulative = 0;
+            phase.milestones.forEach(milestone => {
+              if (dayIndex === cumulative + 1) {
+                label = milestone.label;
+                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+              }
+              const d = milestone.days === 'remainder' ? (phaseDays - cumulative) : milestone.days;
+              cumulative += d;
+            });
+          } else {
+            phase.milestones.forEach((milestone, mIdx) => {
+              const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
+              if (dayIndex === milestoneDay) {
+                label = milestone.label;
+                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+              }
+            });
+          }
         }
 
         bars.push({
