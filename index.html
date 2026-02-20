@@ -923,6 +923,17 @@
     .calendar-range-bar.range-end.ev-4 { border-right: 1px solid var(--phase-4-border); }
     .calendar-range-bar.range-end.ev-5 { border-right: 1px solid var(--phase-5-border); }
 
+    /* Milestone sub-bars: smaller, slightly transparent, indented */
+    .calendar-range-bar.milestone-bar {
+      min-height: 14px;
+      font-size: 0.5rem;
+      padding: 1px 4px;
+      opacity: 0.78;
+      margin-top: 0;
+    }
+    .calendar-range-bar.milestone-bar.range-start { margin-left: 6px; border-left-width: 2px; }
+    .calendar-range-bar.milestone-bar.range-start.range-end { margin-left: 6px; margin-right: 0; }
+
     /* ===== Tooltip ===== */
     .tooltip {
       display: none;
@@ -1632,10 +1643,11 @@
             : bar.position === 'end' ? 'range-end'
             : bar.position === 'single' ? 'range-start range-end'
             : 'range-middle';
+          const milestoneCls = bar.isMilestone ? ' milestone-bar' : '';
           const label = bar.label
             ? `<span class="range-milestone">${bar.label}</span>`
             : '';
-          return `<div class="calendar-range-bar ${posCls} ${bar.eventClass}"
+          return `<div class="calendar-range-bar ${posCls}${milestoneCls} ${bar.eventClass}"
                 onclick="showPhaseDetail('${bar.phaseKey}')"
                 title="${esc(bar.title)}">${label}</div>`;
         }).join('');
@@ -1695,7 +1707,7 @@
           position = 'middle';
         }
 
-        // Determine label to show in the bar
+        // Determine label to show in the phase bar
         let label = '';
         let title = phase.shortName;
 
@@ -1710,26 +1722,11 @@
           label = phase.shortName;
           title = phase.shortName + ' (continued)';
         } else if (!isWeekend(date)) {
-          // Check for milestones on this business day
           const hasDatedMilestones = phase.milestones.some(m => m.startDate);
-
-          if (hasDatedMilestones) {
-            // Use computed start dates — show each sub-milestone label on its first day
-            // (skip index 0 since the phase start day already shows the phase name)
-            phase.milestones.forEach((milestone, mIdx) => {
-              if (!milestone.startDate) return;
-              const mStartTime = new Date(milestone.startDate);
-              mStartTime.setHours(0, 0, 0, 0);
-              if (mIdx > 0 && dateTime === mStartTime.getTime()) {
-                label = milestone.label;
-                title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
-              }
-            });
-          } else {
-            // Legacy: evenly-spaced milestone positioning
+          if (!hasDatedMilestones) {
+            // Legacy: evenly-spaced milestone label positioning for phases without computed dates
             const phaseDays = countBusinessDays(startTime, endTime);
             const dayIndex = countBusinessDays(startTime, date);
-
             phase.milestones.forEach((milestone, mIdx) => {
               const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
               if (dayIndex === milestoneDay) {
@@ -1746,6 +1743,38 @@
           position,
           label,
           title
+        });
+
+        // Emit a separate sub-bar for each milestone that has a computed date range
+        phase.milestones.forEach(milestone => {
+          if (!milestone.startDate || milestone.noDate) return;
+
+          const mStartTime = new Date(milestone.startDate);
+          mStartTime.setHours(0, 0, 0, 0);
+          const mEndTime = new Date(milestone.endDate);
+          mEndTime.setHours(0, 0, 0, 0);
+
+          if (dateTime < mStartTime.getTime() || dateTime > mEndTime.getTime()) return;
+
+          const isMStart = dateTime === mStartTime.getTime();
+          const isMEnd   = dateTime === mEndTime.getTime();
+          const visualMStart = isMStart || isRowStart;
+          const visualMEnd   = isMEnd   || isRowEnd;
+
+          let mPosition;
+          if (visualMStart && visualMEnd) mPosition = 'single';
+          else if (visualMStart) mPosition = 'start';
+          else if (visualMEnd)   mPosition = 'end';
+          else                   mPosition = 'middle';
+
+          bars.push({
+            phaseKey: phase.key,
+            eventClass: phase.eventClass,
+            position: mPosition,
+            label: isMStart ? milestone.label : '',
+            title: milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : ''),
+            isMilestone: true
+          });
         });
       });
 
