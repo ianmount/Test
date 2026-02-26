@@ -1238,7 +1238,7 @@
         milestones: [
           { label: 'Internal Audits', durationDays: 5 },
           { label: 'Partner Audit 1', durationDays: 5 },
-          { label: 'SEO Site Audit', durationDays: 2 },
+          { label: 'SEO Site Audit', durationConfig: { min: 8, max: 10 }, parallelStart: true },
           { label: 'Partner Audit 2' }
         ]
       },
@@ -1377,7 +1377,7 @@
      * concrete startDate / endDate for each sub-milestone.
      * Milestones without `durationDays` consume the remainder of the phase.
      */
-    function computeMilestoneDates(milestones, phaseStart, phaseEnd) {
+    function computeMilestoneDates(milestones, phaseStart, phaseEnd, mode) {
       // Total business days from phaseStart up to (not including) phaseEnd
       const totalBizDays = countBusinessDays(phaseStart, phaseEnd);
       let offset = 0; // cumulative business days already allocated
@@ -1394,17 +1394,29 @@
           return { ...m, startDate: mStart, endDate: mEnd };
         }
 
-        const mStart = offset === 0
+        // parallelStart milestones always begin at the phase start (offset 0)
+        // and do not advance the sequential offset for subsequent milestones.
+        const effectiveOffset = m.parallelStart ? 0 : offset;
+
+        const mStart = effectiveOffset === 0
           ? new Date(phaseStart)
-          : addBusinessDays(phaseStart, offset);
+          : addBusinessDays(phaseStart, effectiveOffset);
 
         let mEnd;
+        // Resolve duration from a mode-aware config object if provided
+        const resolvedDuration = m.durationConfig !== undefined
+          ? (mode === '3month' ? m.durationConfig.min : m.durationConfig.max)
+          : undefined;
+
         if (m.singleDay) {
           // Point-in-time marker: start and end are the same day, offset does not advance
           mEnd = new Date(mStart);
+        } else if (resolvedDuration !== undefined) {
+          mEnd = addBusinessDays(phaseStart, effectiveOffset + resolvedDuration - 1);
+          if (!m.parallelStart) offset += resolvedDuration;
         } else if (m.durationDays !== undefined) {
-          mEnd = addBusinessDays(phaseStart, offset + m.durationDays - 1);
-          offset += m.durationDays;
+          mEnd = addBusinessDays(phaseStart, effectiveOffset + m.durationDays - 1);
+          if (!m.parallelStart) offset += m.durationDays;
         } else {
           mEnd = new Date(phaseEnd);
         }
@@ -1438,10 +1450,10 @@
 
         // Enrich milestone dates for phases that define sub-milestone durations
         const hasDurationMilestones = phase.milestones.some(
-          m => m.durationDays !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
+          m => m.durationDays !== undefined || m.durationConfig !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
         );
         const milestones = hasDurationMilestones
-          ? computeMilestoneDates(phase.milestones, currentStart, endDate)
+          ? computeMilestoneDates(phase.milestones, currentStart, endDate, timelineMode)
           : phase.milestones;
 
         calculatedPhases.push({
