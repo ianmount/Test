@@ -258,6 +258,40 @@
       background: var(--bg-hover);
     }
 
+    /* SEO Toggle Checkbox */
+    .seo-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-transform: none;
+      letter-spacing: normal;
+      padding: 8px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .seo-toggle:hover {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+    }
+
+    .seo-toggle input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+      margin: 0;
+    }
+
     /* ===== Warning Banner ===== */
     .past-warning {
       background: var(--warning-bg);
@@ -1106,6 +1140,13 @@
             <button class="mode-btn" data-mode="4month" onclick="setTimelineMode('4month')">4-Month</button>
           </div>
         </div>
+        <div class="control-group">
+          <label>Options</label>
+          <label class="seo-toggle">
+            <input type="checkbox" id="seoCheckbox" checked onchange="toggleSEO()">
+            <span>Include SEO Milestones</span>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -1195,7 +1236,7 @@
         milestones: [
           { label: 'Internal Review', durationDays: 5 },
           { label: 'Partner Review' },
-          { label: 'Campaign Strategy Trigger', sub: 'After SEO Keywords approval', singleDay: true }
+          { label: 'Campaign Strategy Trigger', sub: 'After SEO Keywords approval', singleDay: true, seo: true }
         ]
       },
       {
@@ -1210,7 +1251,7 @@
           { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
           { label: 'Content Doc Formatting (MC)', durationDays: 2 },
           { label: 'Copywriting + Content Doc Prep' },
-          { label: 'SEO Copy Audit', daysBeforeEnd: 5, singleDay: true },
+          { label: 'SEO Copy Audit', daysBeforeEnd: 5, singleDay: true, seo: true },
           { label: 'Content Document Handoff', daysBeforeEnd: 0, singleDay: true }
         ]
       },
@@ -1238,7 +1279,7 @@
         milestones: [
           { label: 'Internal Audits', durationDays: 5 },
           { label: 'Partner Audit 1', durationDays: 5 },
-          { label: 'SEO Site Audit', durationConfig: { min: 8, max: 10 }, parallelStart: true },
+          { label: 'SEO Site Audit', durationConfig: { min: 8, max: 10 }, parallelStart: true, seo: true },
           { label: 'Partner Audit 2' }
         ]
       },
@@ -1253,7 +1294,7 @@
         milestones: [
           { label: 'Pre-Launch' },
           { label: 'Launch' },
-          { label: 'Post-Launch SEO Assets', sub: 'Schema Markup, Image Alt Tags, Final SEO Revisions' }
+          { label: 'Post-Launch SEO Assets', sub: 'Schema Markup, Image Alt Tags, Final SEO Revisions', seo: true }
         ]
       }
     ];
@@ -1264,6 +1305,7 @@
 
     let currentView = 'timeline';
     let timelineMode = '3month'; // '3month' or '4month'
+    let includeSEO = true;
     let calendarMonth = null;
     let calculatedPhases = [];
     let projectStartDate = null;
@@ -1448,13 +1490,16 @@
         const businessDays = resolveDuration(durationConfig, timelineMode);
         const endDate = addBusinessDays(currentStart, businessDays);
 
+        // Filter out SEO milestones if SEO is disabled
+        const filteredMilestones = phase.milestones.filter(m => !m.seo || includeSEO);
+
         // Enrich milestone dates for phases that define sub-milestone durations
-        const hasDurationMilestones = phase.milestones.some(
+        const hasDurationMilestones = filteredMilestones.some(
           m => m.durationDays !== undefined || m.durationConfig !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
         );
         const milestones = hasDurationMilestones
-          ? computeMilestoneDates(phase.milestones, currentStart, endDate, timelineMode)
-          : phase.milestones;
+          ? computeMilestoneDates(filteredMilestones, currentStart, endDate, timelineMode)
+          : filteredMilestones;
 
         calculatedPhases.push({
           ...phase,
@@ -1975,6 +2020,11 @@
     /* ================================================================
        VIEW TOGGLE
        ================================================================ */
+
+    function toggleSEO() {
+      includeSEO = document.getElementById('seoCheckbox').checked;
+      recalculate();
+    }
 
     function setView(view) {
       currentView = view;
