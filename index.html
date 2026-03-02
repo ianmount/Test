@@ -1134,18 +1134,19 @@
           <input type="date" id="startDate" onchange="recalculate()">
         </div>
         <div class="control-group">
-          <label>Timeline Mode</label>
-          <div class="timeline-mode-group">
-            <button class="mode-btn active" data-mode="3month" onclick="setTimelineMode('3month')">3-Month</button>
-            <button class="mode-btn" data-mode="4month" onclick="setTimelineMode('4month')">4-Month</button>
-          </div>
+          <label for="websiteType">Website Type</label>
+          <select id="websiteType" onchange="setWebsiteType(this.value)">
+            <option value="template">Template</option>
+            <option value="semi-custom">Semi-Custom</option>
+            <option value="fully-custom">Fully Custom</option>
+          </select>
         </div>
-        <div class="control-group">
-          <label>Options</label>
-          <label class="seo-toggle">
-            <input type="checkbox" id="seoCheckbox" checked onchange="toggleSEO()">
-            <span>Include SEO Milestones</span>
-          </label>
+        <div class="control-group" id="semiCustomDurationGroup" style="display: none;">
+          <label for="semiCustomDuration">Duration</label>
+          <select id="semiCustomDuration" onchange="setSemiCustomDuration(this.value)">
+            <option value="3month">3 Month</option>
+            <option value="4month">4 Month</option>
+          </select>
         </div>
       </div>
     </div>
@@ -1213,16 +1214,9 @@
        - No hardcoded durations in UI code
     */
 
-    const PHASE_DURATIONS = {
-      designPlanning:      { min: 15, max: 25 },  // 3-month: 3 weeks, 4-month: 5 weeks
-      developmentContent:  { min: 10, max: 20 },  // 3-month: 2 weeks, 4-month: 4 weeks
-      qaContentUpload:     { min: 5,  max: 10 },  // 3-month: 1 week,  4-month: 2 weeks
-      audits:              { min: 25, max: 20 },  // 3-month: 5 weeks, 4-month: 4 weeks
-      preLaunchLaunch:     { min: 5,  max: 5  }   // 3-month: 1 week,  4-month: 1 week
-    };
-
     /**
-     * Phase definitions with display info and milestones.
+     * All timeline configurations keyed by type.
+     * Each phase carries its own durationDays (in business days).
      */
     const PHASES = [
       {
@@ -1252,19 +1246,146 @@
           { label: 'Copywriting' },
           { label: 'SEO Copy Audit', daysBeforeEnd: 5, singleDay: true, seo: true },
           { label: 'Content Document Handoff', daysBeforeEnd: 0, singleDay: true }
+    const TIMELINE_CONFIGS = {
+
+      'template': {
+        label: 'Template — 3 Month',
+        phases: [
+          {
+            key: 'designPlanning',
+            name: 'Phase 1: Design & Planning',
+            shortName: 'Design & Planning',
+            cssClass: 'phase-1', eventClass: 'ev-1',
+            color: 'var(--phase-1)', colorHex: '#8b5cf6',
+            durationDays: 15,
+            milestones: [
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Review \u2022 SEO Keywords Approved' },
+              { label: 'Final Approvals', sub: 'Final Website Plan + Homepage Partner Review/Approval \u2022 Campaign Strategy Trigger' }
+            ]
+          },
+          {
+            key: 'developmentContent',
+            name: 'Phase 2: Development & Content',
+            shortName: 'Dev & Content',
+            cssClass: 'phase-2', eventClass: 'ev-2',
+            color: 'var(--phase-2)', colorHex: '#f59e0b',
+            durationDays: 15,
+            milestones: [
+              { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
+              { label: 'Content Doc Formatting (MC)', durationDays: 2 },
+              { label: 'Secondary Page Development', durationDays: 1 },
+              { label: 'Copywriting + Secondary Page Dev', durationDays: 5 },
+              { label: 'Copywriting + Dev QA' }
+            ]
+          },
+          {
+            key: 'qaContentUpload',
+            name: 'Phase 3: QA & Content Upload',
+            shortName: 'QA & Upload',
+            cssClass: 'phase-3', eventClass: 'ev-3',
+            color: 'var(--phase-3)', colorHex: '#10b981',
+            durationDays: 5,
+            milestones: [
+              { label: 'Content Upload' },
+              { label: 'Dev QA (if needed)', noDate: true }
+            ]
+          },
+          {
+            key: 'audits',
+            name: 'Phase 4: Audits',
+            shortName: 'Audits',
+            cssClass: 'phase-4', eventClass: 'ev-4',
+            color: 'var(--phase-4)', colorHex: '#ef4444',
+            durationDays: 20,
+            milestones: [
+              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
+            ]
+          },
+          {
+            key: 'preLaunchLaunch',
+            name: 'Phase 5: Pre-Launch & Launch',
+            shortName: 'Launch',
+            cssClass: 'phase-5', eventClass: 'ev-5',
+            color: 'var(--phase-5)', colorHex: '#3b82f6',
+            durationDays: 5,
+            milestones: [
+              { label: 'Pre-Launch' },
+              { label: 'Launch', noDate: true }
+            ]
+          }
         ]
       },
-      {
-        key: 'qaContentUpload',
-        name: 'Phase 3: QA & Content Upload',
-        shortName: 'QA & Upload',
-        cssClass: 'phase-3',
-        eventClass: 'ev-3',
-        color: 'var(--phase-3)',
-        colorHex: '#10b981',
-        milestones: [
-          { label: 'Development QA Testing' },
-          { label: 'Content Upload', noDate: true }
+
+      'semi-custom-3month': {
+        label: 'Semi-Custom \u2014 3 Month',
+        phases: [
+          {
+            key: 'designPlanning',
+            name: 'Phase 1: Design & Planning',
+            shortName: 'Design & Planning',
+            cssClass: 'phase-1', eventClass: 'ev-1',
+            color: 'var(--phase-1)', colorHex: '#8b5cf6',
+            durationDays: 15,
+            milestones: [
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review \u2022 SEO Keywords Approved' },
+              { label: 'Final Approvals', sub: 'Final Website Plan + Homepage Design Partner Review/Approval \u2022 Campaign Strategy Trigger' }
+            ]
+          },
+          {
+            key: 'developmentContent',
+            name: 'Phase 2: Development & Content',
+            shortName: 'Dev & Content',
+            cssClass: 'phase-2', eventClass: 'ev-2',
+            color: 'var(--phase-2)', colorHex: '#f59e0b',
+            durationDays: 20,
+            milestones: [
+              { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
+              { label: 'Content Doc Formatting (MC)', durationDays: 2 },
+              { label: 'Secondary Page Development', durationDays: 1 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 2)', durationDays: 5 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 3)', durationDays: 5 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 4)' }
+            ]
+          },
+          {
+            key: 'qaContentUpload',
+            name: 'Phase 3: QA & Content Upload',
+            shortName: 'QA & Upload',
+            cssClass: 'phase-3', eventClass: 'ev-3',
+            color: 'var(--phase-3)', colorHex: '#10b981',
+            durationDays: 5,
+            milestones: [
+              { label: 'Content Upload' },
+              { label: 'Dev QA (if needed)', noDate: true }
+            ]
+          },
+          {
+            key: 'audits',
+            name: 'Phase 4: Audits',
+            shortName: 'Audits',
+            cssClass: 'phase-4', eventClass: 'ev-4',
+            color: 'var(--phase-4)', colorHex: '#ef4444',
+            durationDays: 15,
+            milestones: [
+              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Partner Audits', sub: 'Weeks 2\u20133' }
+            ]
+          },
+          {
+            key: 'preLaunchLaunch',
+            name: 'Phase 5: Pre-Launch & Launch',
+            shortName: 'Launch',
+            cssClass: 'phase-5', eventClass: 'ev-5',
+            color: 'var(--phase-5)', colorHex: '#3b82f6',
+            durationDays: 5,
+            milestones: [
+              { label: 'Pre-Launch' },
+              { label: 'Launch', noDate: true }
+            ]
+          }
         ]
       },
       {
@@ -1280,31 +1401,162 @@
           { label: 'SEO Site Audit', durationConfig: { min: 8, max: 10 }, parallelStart: true, seo: true },
           { label: 'Partner Audit 1', durationDays: 5 },
           { label: 'Partner Audit 2' }
+
+      'semi-custom-4month': {
+        label: 'Semi-Custom \u2014 4 Month',
+        phases: [
+          {
+            key: 'designPlanning',
+            name: 'Phase 1: Design & Planning',
+            shortName: 'Design & Planning',
+            cssClass: 'phase-1', eventClass: 'ev-1',
+            color: 'var(--phase-1)', colorHex: '#8b5cf6',
+            durationDays: 25,
+            milestones: [
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review \u2022 SEO Keywords Approved' },
+              { label: 'Buffer \u2014 Design Revisions (Wk 3)', durationDays: 5, sub: 'Homepage Design + Website Plan Revisions \u2022 Campaign Strategy Initiated' },
+              { label: 'Buffer \u2014 Design Revisions (Wk 4)', durationDays: 5, sub: 'Homepage Design + Website Plan Revisions' },
+              { label: 'Final Approvals', sub: 'Final Approval of Homepage Design + Website Plan' }
+            ]
+          },
+          {
+            key: 'developmentContent',
+            name: 'Phase 2: Development & Content',
+            shortName: 'Dev & Content',
+            cssClass: 'phase-2', eventClass: 'ev-2',
+            color: 'var(--phase-2)', colorHex: '#f59e0b',
+            durationDays: 20,
+            milestones: [
+              { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
+              { label: 'Content Doc Formatting (MC)', durationDays: 2 },
+              { label: 'Secondary Page Development', durationDays: 1 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 2)', durationDays: 5 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 3)', durationDays: 5 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 4)' }
+            ]
+          },
+          {
+            key: 'qaContentUpload',
+            name: 'Phase 3: QA & Content Upload',
+            shortName: 'QA & Upload',
+            cssClass: 'phase-3', eventClass: 'ev-3',
+            color: 'var(--phase-3)', colorHex: '#10b981',
+            durationDays: 10,
+            milestones: [
+              { label: 'Content Upload', durationDays: 5 },
+              { label: 'Dev QA' }
+            ]
+          },
+          {
+            key: 'audits',
+            name: 'Phase 4: Audits',
+            shortName: 'Audits',
+            cssClass: 'phase-4', eventClass: 'ev-4',
+            color: 'var(--phase-4)', colorHex: '#ef4444',
+            durationDays: 20,
+            milestones: [
+              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
+            ]
+          },
+          {
+            key: 'preLaunchLaunch',
+            name: 'Phase 5: Pre-Launch & Launch',
+            shortName: 'Launch',
+            cssClass: 'phase-5', eventClass: 'ev-5',
+            color: 'var(--phase-5)', colorHex: '#3b82f6',
+            durationDays: 5,
+            milestones: [
+              { label: 'Pre-Launch' },
+              { label: 'Launch', noDate: true }
+            ]
+          }
         ]
       },
-      {
-        key: 'preLaunchLaunch',
-        name: 'Phase 5: Pre-Launch & Launch',
-        shortName: 'Launch',
-        cssClass: 'phase-5',
-        eventClass: 'ev-5',
-        color: 'var(--phase-5)',
-        colorHex: '#3b82f6',
-        milestones: [
-          { label: 'Pre-Launch' },
-          { label: 'Launch' },
-          { label: 'Post-Launch SEO Assets', sub: 'Schema Markup, Image Alt Tags, Final SEO Revisions', seo: true }
+
+      'fully-custom': {
+        label: 'Fully Custom \u2014 4 Month',
+        phases: [
+          {
+            key: 'designPlanning',
+            name: 'Phase 1: Design & Planning',
+            shortName: 'Design & Planning',
+            cssClass: 'phase-1', eventClass: 'ev-1',
+            color: 'var(--phase-1)', colorHex: '#8b5cf6',
+            durationDays: 25,
+            milestones: [
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review \u2022 SEO Keywords Approved' },
+              { label: 'Buffer \u2014 Design Revisions (Wk 3)', durationDays: 5, sub: 'Homepage and Secondary Page Designs + Website Plan Revisions \u2022 Campaign Strategy Initiated' },
+              { label: 'Buffer \u2014 Design Revisions (Wk 4)', durationDays: 5, sub: 'Homepage and Secondary Page Designs + Website Plan Revisions' },
+              { label: 'Final Approvals', sub: 'Final Approval of All Designs + Website Plan' }
+            ]
+          },
+          {
+            key: 'developmentContent',
+            name: 'Phase 2: Development & Content',
+            shortName: 'Dev & Content',
+            cssClass: 'phase-2', eventClass: 'ev-2',
+            color: 'var(--phase-2)', colorHex: '#f59e0b',
+            durationDays: 20,
+            milestones: [
+              { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
+              { label: 'Content Doc Formatting (MC)', durationDays: 2 },
+              { label: 'Secondary Page Development', durationDays: 1 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 2)', durationDays: 5 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 3)', durationDays: 5 },
+              { label: 'Copywriting + Secondary Page Dev (Wk 4)' }
+            ]
+          },
+          {
+            key: 'qaContentUpload',
+            name: 'Phase 3: QA & Content Upload',
+            shortName: 'QA & Upload',
+            cssClass: 'phase-3', eventClass: 'ev-3',
+            color: 'var(--phase-3)', colorHex: '#10b981',
+            durationDays: 10,
+            milestones: [
+              { label: 'Content Upload', durationDays: 5 },
+              { label: 'Dev QA' }
+            ]
+          },
+          {
+            key: 'audits',
+            name: 'Phase 4: Audits',
+            shortName: 'Audits',
+            cssClass: 'phase-4', eventClass: 'ev-4',
+            color: 'var(--phase-4)', colorHex: '#ef4444',
+            durationDays: 20,
+            milestones: [
+              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
+            ]
+          },
+          {
+            key: 'preLaunchLaunch',
+            name: 'Phase 5: Pre-Launch & Launch',
+            shortName: 'Launch',
+            cssClass: 'phase-5', eventClass: 'ev-5',
+            color: 'var(--phase-5)', colorHex: '#3b82f6',
+            durationDays: 5,
+            milestones: [
+              { label: 'Pre-Launch' },
+              { label: 'Launch', noDate: true }
+            ]
+          }
         ]
       }
-    ];
+
+    };
 
     /* ================================================================
        STATE
        ================================================================ */
 
     let currentView = 'timeline';
-    let timelineMode = '3month'; // '3month' or '4month'
-    let includeSEO = true;
+    let websiteType = 'template'; // 'template', 'semi-custom', 'fully-custom'
+    let semiCustomDuration = '3month'; // '3month' or '4month' (only relevant for semi-custom)
     let calendarMonth = null;
     let calculatedPhases = [];
     let projectStartDate = null;
@@ -1381,12 +1633,17 @@
     }
 
     /**
-     * Resolve duration based on timeline mode.
-     * 3-Month → min (lower estimate)
-     * 4-Month → max (higher estimate)
+     * Get the active timeline configuration object.
      */
-    function resolveDuration(durationConfig, mode) {
-      return mode === '3month' ? durationConfig.min : durationConfig.max;
+    function getCurrentConfig() {
+      if (websiteType === 'semi-custom') {
+        return TIMELINE_CONFIGS[semiCustomDuration === '3month' ? 'semi-custom-3month' : 'semi-custom-4month'];
+      }
+      return TIMELINE_CONFIGS[websiteType];
+    }
+
+    function getCurrentPhases() {
+      return getCurrentConfig().phases;
     }
 
     function formatDuration(businessDays) {
@@ -1484,21 +1741,17 @@
       calculatedPhases = [];
       let currentStart = new Date(adjustedStart);
 
-      PHASES.forEach(phase => {
-        const durationConfig = PHASE_DURATIONS[phase.key];
-        const businessDays = resolveDuration(durationConfig, timelineMode);
+      getCurrentPhases().forEach(phase => {
+        const businessDays = phase.durationDays;
         const endDate = addBusinessDays(currentStart, businessDays);
 
-        // Filter out SEO milestones if SEO is disabled
-        const filteredMilestones = phase.milestones.filter(m => !m.seo || includeSEO);
-
         // Enrich milestone dates for phases that define sub-milestone durations
-        const hasDurationMilestones = filteredMilestones.some(
-          m => m.durationDays !== undefined || m.durationConfig !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
+        const hasDurationMilestones = phase.milestones.some(
+          m => m.durationDays !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
         );
         const milestones = hasDurationMilestones
-          ? computeMilestoneDates(filteredMilestones, currentStart, endDate, timelineMode)
-          : filteredMilestones;
+          ? computeMilestoneDates(phase.milestones, currentStart, endDate, null)
+          : phase.milestones;
 
         calculatedPhases.push({
           ...phase,
@@ -1506,8 +1759,7 @@
           startDate: new Date(currentStart),
           endDate: new Date(endDate),
           businessDays,
-          durationLabel: formatDuration(businessDays),
-          rangeLabel: formatDurationRange(durationConfig)
+          durationLabel: formatDuration(businessDays)
         });
 
         // Next phase starts the next business day after end
@@ -1532,8 +1784,7 @@
       }
 
       // Update mode label
-      document.getElementById('timelineModeLabel').textContent =
-        (timelineMode === '3month' ? '3-Month' : '4-Month') + ' Timeline';
+      document.getElementById('timelineModeLabel').textContent = getCurrentConfig().label;
 
       renderSummary();
       renderTimeline();
@@ -1543,14 +1794,18 @@
     }
 
     /* ================================================================
-       TIMELINE MODE TOGGLE
+       WEBSITE TYPE / DURATION SELECTORS
        ================================================================ */
 
-    function setTimelineMode(mode) {
-      timelineMode = mode;
-      document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
-      });
+    function setWebsiteType(type) {
+      websiteType = type;
+      const semiGroup = document.getElementById('semiCustomDurationGroup');
+      semiGroup.style.display = type === 'semi-custom' ? '' : 'none';
+      recalculate();
+    }
+
+    function setSemiCustomDuration(duration) {
+      semiCustomDuration = duration;
       recalculate();
     }
 
@@ -1889,7 +2144,7 @@
        ================================================================ */
 
     function renderLegend() {
-      const html = PHASES.map(phase =>
+      const html = getCurrentPhases().map(phase =>
         `<div class="legend-item">
           <div class="legend-swatch" style="background: ${phase.colorHex};"></div>
           ${phase.shortName}
@@ -1900,7 +2155,7 @@
     }
 
     function renderCalendarLegend() {
-      const html = PHASES.map(phase =>
+      const html = getCurrentPhases().map(phase =>
         `<div class="legend-item">
           <div class="legend-swatch" style="background: ${phase.colorHex};"></div>
           ${phase.shortName}
@@ -1952,10 +2207,6 @@
           <div class="detail-meta-item">
             <span class="meta-label">Duration</span>
             <span class="meta-value">${phase.durationLabel}</span>
-          </div>
-          <div class="detail-meta-item">
-            <span class="meta-label">Range</span>
-            <span class="meta-value">${phase.rangeLabel}</span>
           </div>
           <div class="detail-meta-item">
             <span class="meta-label">Business Days</span>
@@ -2020,11 +2271,6 @@
        VIEW TOGGLE
        ================================================================ */
 
-    function toggleSEO() {
-      includeSEO = document.getElementById('seoCheckbox').checked;
-      recalculate();
-    }
-
     function setView(view) {
       currentView = view;
       document.querySelectorAll('.view-toggle-btn').forEach(btn => {
@@ -2065,7 +2311,7 @@
     function exportCSV() {
       if (calculatedPhases.length === 0) return;
 
-      const modeLabel = timelineMode === '3month' ? '3-Month Timeline' : '4-Month Timeline';
+      const configLabel = getCurrentConfig().label;
 
       let csv = 'Phase,Start Date,End Date,Business Days,Duration,Milestones\n';
       calculatedPhases.forEach(phase => {
@@ -2073,7 +2319,7 @@
         csv += `"${phase.name}","${formatDate(phase.startDate)}","${formatDate(phase.endDate)}",${phase.businessDays},"${phase.durationLabel}","${milestones}"\n`;
       });
 
-      csv += `\nTimeline Mode:,"${modeLabel}"\n`;
+      csv += `\nWebsite Type:,"${configLabel}"\n`;
       csv += `Project Start:,"${formatDate(projectStartDate)}"\n`;
       csv += `Project End:,"${formatDate(projectEndDate)}"\n`;
       csv += `\nNote:,"Business days exclude weekends (Saturday & Sunday)"\n`;
@@ -2086,7 +2332,7 @@
       if (calculatedPhases.length === 0) return;
 
       const data = {
-        timelineMode: timelineMode === '3month' ? '3-Month Timeline' : '4-Month Timeline',
+        websiteType: getCurrentConfig().label,
         projectStart: formatDate(projectStartDate),
         projectEnd: formatDate(projectEndDate),
         note: 'Business days exclude weekends (Saturday & Sunday)',
@@ -2096,7 +2342,6 @@
           endDate: formatDate(phase.endDate),
           businessDays: phase.businessDays,
           duration: phase.durationLabel,
-          durationRange: phase.rangeLabel,
           milestones: phase.milestones.map(m => ({
             label: m.label,
             ...(m.sub ? { detail: m.sub } : {})
