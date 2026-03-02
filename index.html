@@ -1253,8 +1253,9 @@
             milestones: [
               { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
-              { label: 'Secondary Page Development' },
-              { label: 'Copywriting' }
+              { label: 'Secondary Page Development', parallelStart: true },
+              { label: 'Copywriting' },
+              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
             ]
           },
           {
@@ -1278,7 +1279,7 @@
             durationDays: 20,
             milestones: [
               { label: 'Internal Audits', durationDays: 5 },
-              { label: 'SEO Audits', durationDays: 5, parallelStart: true },
+              { label: 'SEO Audits', durationDays: 5, parallelStart: true, seoOnly: true },
               { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
             ]
           },
@@ -1323,8 +1324,9 @@
             milestones: [
               { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
-              { label: 'Secondary Page Development' },
-              { label: 'Copywriting' }
+              { label: 'Secondary Page Development', parallelStart: true },
+              { label: 'Copywriting' },
+              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
             ]
           },
           {
@@ -1348,7 +1350,7 @@
             durationDays: 15,
             milestones: [
               { label: 'Internal Audits', durationDays: 5 },
-              { label: 'SEO Audits', durationDays: 5, parallelStart: true },
+              { label: 'SEO Audits', durationDays: 5, parallelStart: true, seoOnly: true },
               { label: 'Partner Audits', sub: 'Weeks 2\u20133' }
             ]
           },
@@ -1395,8 +1397,9 @@
             milestones: [
               { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
-              { label: 'Secondary Page Development' },
-              { label: 'Copywriting' }
+              { label: 'Secondary Page Development', parallelStart: true },
+              { label: 'Copywriting' },
+              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
             ]
           },
           {
@@ -1420,7 +1423,7 @@
             durationDays: 20,
             milestones: [
               { label: 'Internal Audits', durationDays: 5 },
-              { label: 'SEO Audits', durationDays: 5, parallelStart: true },
+              { label: 'SEO Audits', durationDays: 5, parallelStart: true, seoOnly: true },
               { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
             ]
           },
@@ -1467,8 +1470,9 @@
             milestones: [
               { label: 'Content Doc Formatting (Dev)', durationDays: 2 },
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
-              { label: 'Secondary Page Development' },
-              { label: 'Copywriting' }
+              { label: 'Secondary Page Development', parallelStart: true },
+              { label: 'Copywriting' },
+              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
             ]
           },
           {
@@ -1492,7 +1496,7 @@
             durationDays: 20,
             milestones: [
               { label: 'Internal Audits', durationDays: 5 },
-              { label: 'SEO Audits', durationDays: 5, parallelStart: true },
+              { label: 'SEO Audits', durationDays: 5, parallelStart: true, seoOnly: true },
               { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
             ]
           },
@@ -1647,12 +1651,13 @@
       return milestones.map(m => {
         // Milestones with daysBeforeEnd are anchored to the phase end,
         // independent of the sequential offset from the start.
+        // They span from their computed start through the end of the phase.
         if (m.daysBeforeEnd !== undefined) {
           const startOffset = totalBizDays - m.daysBeforeEnd;
           const mStart = startOffset <= 0
             ? new Date(phaseStart)
             : addBusinessDays(phaseStart, startOffset);
-          const mEnd = new Date(mStart); // always single-day
+          const mEnd = new Date(phaseEnd);
           return { ...m, startDate: mStart, endDate: mEnd };
         }
 
@@ -1787,6 +1792,10 @@
       return parts.join(' \u2022 ');
     }
 
+    function getVisibleMilestones(milestones) {
+      return milestones.filter(m => !m.seoOnly || includeSEO);
+    }
+
     /* ================================================================
        RENDERING - SUMMARY
        ================================================================ */
@@ -1878,7 +1887,7 @@
         const barEnd = ((phase.endDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
         const barWidth = Math.max(barEnd - barStart, 1.5);
 
-        const milestoneDots = phase.milestones.map(m =>
+        const milestoneDots = getVisibleMilestones(phase.milestones).map(m =>
           `<span class="gantt-milestone-dot" title="${esc(m.label)}"></span>`
         ).join('');
 
@@ -2045,8 +2054,9 @@
           const phaseDays = countBusinessDays(startTime, endTime);
           const dayIndex = countBusinessDays(startTime, date);
 
-          phase.milestones.forEach((milestone, mIdx) => {
-            const milestoneDay = Math.round(((mIdx + 1) / (phase.milestones.length + 1)) * phaseDays);
+          const visibleMilestones = getVisibleMilestones(phase.milestones);
+          visibleMilestones.forEach((milestone, mIdx) => {
+            const milestoneDay = Math.round(((mIdx + 1) / (visibleMilestones.length + 1)) * phaseDays);
             if (dayIndex === milestoneDay) {
               label = milestone.label;
               title = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
@@ -2065,7 +2075,7 @@
 
         // Add a sub-bar for each milestone that has computed date ranges
         if (hasDatedMilestones && !isWeekend(date)) {
-          phase.milestones.forEach(milestone => {
+          getVisibleMilestones(phase.milestones).forEach(milestone => {
             if (!milestone.startDate || milestone.noDate) return;
 
             const mStartTime = new Date(milestone.startDate);
@@ -2151,7 +2161,7 @@
       const phase = calculatedPhases.find(p => p.key === phaseKey);
       if (!phase) return;
 
-      const milestonesHtml = phase.milestones.map(m => {
+      const milestonesHtml = getVisibleMilestones(phase.milestones).map(m => {
         const sub = getMilestoneSub(m);
         const subHtml = sub ? `<div class="milestone-sub">${sub}</div>` : '';
         let dateRangeHtml = '';
@@ -2212,7 +2222,7 @@
       const phase = calculatedPhases.find(p => p.key === phaseKey);
       if (!phase) return;
 
-      const milestonesHtml = phase.milestones.map(m =>
+      const milestonesHtml = getVisibleMilestones(phase.milestones).map(m =>
         `<li>${m.label}</li>`
       ).join('');
 
