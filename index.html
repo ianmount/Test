@@ -1218,6 +1218,34 @@
      * All timeline configurations keyed by type.
      * Each phase carries its own durationDays (in business days).
      */
+    const PHASES = [
+      {
+        key: 'designPlanning',
+        name: 'Phase 1: Design & Planning',
+        shortName: 'Design & Planning',
+        cssClass: 'phase-1',
+        eventClass: 'ev-1',
+        color: 'var(--phase-1)',
+        colorHex: '#8b5cf6',
+        milestones: [
+          { label: 'Internal Review', durationDays: 5 },
+          { label: 'Partner Review' },
+          { label: 'Campaign Strategy Trigger', sub: 'After SEO Keywords approval', singleDay: true, seo: true }
+        ]
+      },
+      {
+        key: 'developmentContent',
+        name: 'Phase 2: Development & Content',
+        shortName: 'Dev & Content',
+        cssClass: 'phase-2',
+        eventClass: 'ev-2',
+        color: 'var(--phase-2)',
+        colorHex: '#f59e0b',
+        milestones: [
+          { label: 'Secondary Page Development', durationDays: 4 },
+          { label: 'Copywriting' },
+          { label: 'SEO Copy Audit', daysBeforeEnd: 5, singleDay: true, seo: true },
+          { label: 'Content Document Handoff', daysBeforeEnd: 0, singleDay: true }
     const TIMELINE_CONFIGS = {
 
       'template': {
@@ -1360,6 +1388,19 @@
           }
         ]
       },
+      {
+        key: 'audits',
+        name: 'Phase 4: Audits',
+        shortName: 'Audits',
+        cssClass: 'phase-4',
+        eventClass: 'ev-4',
+        color: 'var(--phase-4)',
+        colorHex: '#ef4444',
+        milestones: [
+          { label: 'Internal Audits', durationDays: 5 },
+          { label: 'SEO Site Audit', durationConfig: { min: 8, max: 10 }, parallelStart: true, seo: true },
+          { label: 'Partner Audit 1', durationDays: 5 },
+          { label: 'Partner Audit 2' }
 
       'semi-custom-4month': {
         label: 'Semi-Custom \u2014 4 Month',
