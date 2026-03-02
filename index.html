@@ -1087,9 +1087,139 @@
 
     @media print {
       .header { position: static; }
-      .controls-panel, .header-actions { display: none; }
+      .controls-panel, .header-actions, .tabs-bar { display: none; }
       body { background: #fff; color: #000; }
     }
+
+    /* ===== Tabs Bar ===== */
+    .tabs-bar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 0 32px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-secondary) transparent;
+      flex-shrink: 0;
+    }
+
+    .tabs-bar::-webkit-scrollbar { height: 4px; }
+    .tabs-bar::-webkit-scrollbar-track { background: transparent; }
+    .tabs-bar::-webkit-scrollbar-thumb { background: var(--border-secondary); border-radius: 2px; }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 14px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      cursor: pointer;
+      background: var(--bg-tertiary);
+      border: 1px solid transparent;
+      border-bottom: none;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+      position: relative;
+      bottom: -1px;
+      max-width: 200px;
+      min-width: 80px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .tab:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--border-primary);
+    }
+
+    .tab.active {
+      background: var(--bg-primary);
+      border-color: var(--border-primary);
+      border-bottom-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .tab-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tab-name-input {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-focus);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.8125rem;
+      font-family: inherit;
+      font-weight: 600;
+      padding: 2px 6px;
+      width: 130px;
+      outline: none;
+    }
+
+    .tab-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .tab-close:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .tab-add {
+      background: none;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.375rem;
+      line-height: 1;
+      padding: 5px 11px;
+      border-radius: var(--radius-sm);
+      align-self: center;
+      transition: all var(--transition);
+      font-family: inherit;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .tab-add:hover {
+      color: var(--accent);
+      background: var(--accent-subtle);
+      border-color: var(--accent-border);
+    }
+
+    .tabs-save-hint {
+      margin-left: auto;
+      align-self: center;
+      padding: 0 4px 4px;
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      flex-shrink: 0;
+    }
+
+    .tabs-save-hint.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -1122,6 +1252,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Tabs Bar -->
+  <div class="tabs-bar" id="tabsBar"></div>
 
   <!-- Main -->
   <div class="main">
@@ -1530,6 +1663,11 @@
     let projectStartDate = null;
     let projectEndDate = null;
 
+    // Tab state
+    let tabs = [];
+    let activeTabId = 1;
+    let nextTabId = 1;
+
     /* ================================================================
        BUSINESS DAY LOGIC
        ================================================================
@@ -1760,6 +1898,7 @@
       renderCalendar();
       renderLegend();
       closeDetailPanel();
+      saveToStorage();
     }
 
     /* ================================================================
@@ -1783,6 +1922,7 @@
       renderTimeline();
       renderCalendar();
       closeDetailPanel();
+      saveToStorage();
     }
 
     function getMilestoneSub(m) {
@@ -2272,6 +2412,7 @@
       if (view === 'calendar' && calculatedPhases.length > 0) {
         renderCalendar();
       }
+      saveToStorage();
     }
 
     /* ================================================================
@@ -2282,6 +2423,7 @@
       if (!calendarMonth) return;
       calendarMonth.setMonth(calendarMonth.getMonth() + delta);
       renderCalendar();
+      saveToStorage();
     }
 
     /* ================================================================
@@ -2364,19 +2506,202 @@
     }
 
     /* ================================================================
+       TAB MANAGEMENT & PERSISTENCE
+       ================================================================ */
+
+    function todayDateString() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function createTab(name) {
+      return {
+        id: nextTabId++,
+        name: name || ('Website ' + nextTabId),
+        startDate: todayDateString(),
+        websiteType: 'template',
+        semiCustomDuration: '3month',
+        includeSEO: true,
+        currentView: 'timeline',
+        calendarMonthISO: null
+      };
+    }
+
+    /** Copy current global UI state into the active tab object. */
+    function syncActiveTabState() {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (!tab) return;
+      tab.startDate = document.getElementById('startDate').value;
+      tab.websiteType = websiteType;
+      tab.semiCustomDuration = semiCustomDuration;
+      tab.includeSEO = includeSEO;
+      tab.currentView = currentView;
+      tab.calendarMonthISO = calendarMonth ? calendarMonth.toISOString() : null;
+    }
+
+    function saveToStorage() {
+      syncActiveTabState();
+      try {
+        localStorage.setItem('wte_tabs', JSON.stringify(tabs));
+        localStorage.setItem('wte_activeTabId', String(activeTabId));
+        localStorage.setItem('wte_nextTabId', String(nextTabId));
+      } catch (e) { /* storage may be unavailable */ }
+      flashSaveHint();
+    }
+
+    function flashSaveHint() {
+      const hint = document.getElementById('tabsSaveHint');
+      if (!hint) return;
+      hint.classList.add('show');
+      clearTimeout(hint._timer);
+      hint._timer = setTimeout(() => hint.classList.remove('show'), 1500);
+    }
+
+    function loadFromStorage() {
+      try {
+        const storedTabs = localStorage.getItem('wte_tabs');
+        const storedActive = localStorage.getItem('wte_activeTabId');
+        const storedNextId = localStorage.getItem('wte_nextTabId');
+        if (storedTabs) {
+          tabs = JSON.parse(storedTabs);
+          nextTabId = storedNextId ? parseInt(storedNextId, 10) : tabs.length + 1;
+          const parsedActive = storedActive ? parseInt(storedActive, 10) : null;
+          activeTabId = (parsedActive && tabs.some(t => t.id === parsedActive))
+            ? parsedActive : tabs[0].id;
+          return true;
+        }
+      } catch (e) { /* corrupt storage — fall through */ }
+      return false;
+    }
+
+    function addTab() {
+      syncActiveTabState();
+      const tab = createTab('Website ' + (tabs.length + 1));
+      tabs.push(tab);
+      applyTab(tab.id);
+    }
+
+    function closeTab(tabId, event) {
+      if (event) event.stopPropagation();
+      if (tabs.length <= 1) return;
+      const idx = tabs.findIndex(t => t.id === tabId);
+      if (idx === -1) return;
+      tabs.splice(idx, 1);
+      if (activeTabId === tabId) {
+        const nextTab = tabs[Math.min(idx, tabs.length - 1)];
+        applyTab(nextTab.id, false);
+      } else {
+        renderTabs();
+        saveToStorage();
+      }
+    }
+
+    /**
+     * Apply a tab's saved state to the global vars and re-render.
+     * @param {number} tabId
+     * @param {boolean} [saveFirst=true]  whether to snapshot the current tab first
+     */
+    function applyTab(tabId, saveFirst = true) {
+      if (saveFirst && tabId !== activeTabId) syncActiveTabState();
+      activeTabId = tabId;
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return;
+
+      // Restore global state from tab
+      websiteType = tab.websiteType;
+      semiCustomDuration = tab.semiCustomDuration;
+      includeSEO = tab.includeSEO;
+      calendarMonth = tab.calendarMonthISO ? new Date(tab.calendarMonthISO) : null;
+
+      // Restore UI controls
+      document.getElementById('startDate').value = tab.startDate;
+      document.getElementById('websiteType').value = websiteType;
+      document.getElementById('semiCustomDuration').value = semiCustomDuration;
+      document.getElementById('seoToggle').checked = includeSEO;
+      document.getElementById('semiCustomDurationGroup').style.display =
+        websiteType === 'semi-custom' ? '' : 'none';
+
+      // Restore view toggle (before recalculate so labels render right)
+      currentView = tab.currentView || 'timeline';
+      document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === currentView);
+      });
+      document.getElementById('timelineView').classList.toggle('active', currentView === 'timeline');
+      document.getElementById('calendarView').classList.toggle('active', currentView === 'calendar');
+
+      renderTabs();
+      recalculate(); // recalculate also calls saveToStorage
+    }
+
+    function startRenameTab(tabId, event) {
+      if (event) event.stopPropagation();
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return;
+      const nameEl = document.querySelector(`.tab[data-tab-id="${tabId}"] .tab-name`);
+      if (!nameEl) return;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'tab-name-input';
+      input.value = tab.name;
+
+      const commit = () => {
+        const trimmed = input.value.trim();
+        tab.name = trimmed || tab.name;
+        saveToStorage();
+        renderTabs();
+      };
+
+      input.onblur = commit;
+      input.onkeydown = e => {
+        if (e.key === 'Enter') { input.blur(); }
+        if (e.key === 'Escape') { input.value = tab.name; input.blur(); }
+        e.stopPropagation();
+      };
+
+      nameEl.replaceWith(input);
+      input.focus();
+      input.select();
+    }
+
+    function renderTabs() {
+      const bar = document.getElementById('tabsBar');
+      if (!bar) return;
+
+      const tabsHtml = tabs.map(tab => {
+        const isActive = tab.id === activeTabId;
+        const closeBtn = tabs.length > 1
+          ? `<button class="tab-close" title="Close tab"
+               onclick="closeTab(${tab.id}, event)">&times;</button>`
+          : '';
+        return `<div class="tab${isActive ? ' active' : ''}" data-tab-id="${tab.id}"
+                     onclick="applyTab(${tab.id})">
+          <span class="tab-name"
+                ondblclick="startRenameTab(${tab.id}, event)"
+                title="Double-click to rename">${esc(tab.name)}</span>
+          ${closeBtn}
+        </div>`;
+      }).join('');
+
+      bar.innerHTML = tabsHtml
+        + `<button class="tab-add" onclick="addTab()" title="Add new website tab">+</button>`
+        + `<span class="tabs-save-hint" id="tabsSaveHint">Saved</span>`;
+    }
+
+    /* ================================================================
        INITIALIZATION
        ================================================================ */
 
     (function init() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      document.getElementById('startDate').value = `${yyyy}-${mm}-${dd}`;
-
-      calendarMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-      recalculate();
+      let loaded = loadFromStorage();
+      if (!loaded) {
+        // First visit — create a single default tab
+        const tab = createTab('Website 1');
+        tabs.push(tab);
+        activeTabId = tab.id;
+      }
+      // applyTab bootstraps all state, renders tabs, and calls recalculate
+      applyTab(activeTabId, false);
     })();
   </script>
 </body>
