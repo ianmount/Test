@@ -1148,6 +1148,13 @@
             <option value="4month">4 Month</option>
           </select>
         </div>
+        <div class="control-group">
+          <label>Options</label>
+          <label class="seo-toggle">
+            <input type="checkbox" id="seoToggle" checked onchange="toggleSEO(this.checked)">
+            Include SEO
+          </label>
+        </div>
       </div>
     </div>
 
@@ -1231,8 +1238,8 @@
             color: 'var(--phase-1)', colorHex: '#8b5cf6',
             durationDays: 15,
             milestones: [
-              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
-              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Review \u2022 SEO Keywords Approved' },
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Review \u2022 Website Alignment Meeting', seoSub: 'Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Review', seoSub: 'SEO Keywords Approved' },
               { label: 'Final Approvals', sub: 'Final Website Plan + Homepage Partner Review/Approval \u2022 Campaign Strategy Trigger' }
             ]
           },
@@ -1271,7 +1278,7 @@
             color: 'var(--phase-4)', colorHex: '#ef4444',
             durationDays: 20,
             milestones: [
-              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Internal Audits', durationDays: 5, seoSub: 'SEO Audits' },
               { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
             ]
           },
@@ -1301,8 +1308,8 @@
             color: 'var(--phase-1)', colorHex: '#8b5cf6',
             durationDays: 15,
             milestones: [
-              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
-              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review \u2022 SEO Keywords Approved' },
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting', seoSub: 'Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review', seoSub: 'SEO Keywords Approved' },
               { label: 'Final Approvals', sub: 'Final Website Plan + Homepage Design Partner Review/Approval \u2022 Campaign Strategy Trigger' }
             ]
           },
@@ -1342,7 +1349,7 @@
             color: 'var(--phase-4)', colorHex: '#ef4444',
             durationDays: 15,
             milestones: [
-              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Internal Audits', durationDays: 5, seoSub: 'SEO Audits' },
               { label: 'Partner Audits', sub: 'Weeks 2\u20133' }
             ]
           },
@@ -1372,8 +1379,8 @@
             color: 'var(--phase-1)', colorHex: '#8b5cf6',
             durationDays: 25,
             milestones: [
-              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
-              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review \u2022 SEO Keywords Approved' },
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting', seoSub: 'Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review', seoSub: 'SEO Keywords Approved' },
               { label: 'Buffer \u2014 Design Revisions (Wk 3)', durationDays: 5, sub: 'Homepage Design + Website Plan Revisions \u2022 Campaign Strategy Initiated' },
               { label: 'Buffer \u2014 Design Revisions (Wk 4)', durationDays: 5, sub: 'Homepage Design + Website Plan Revisions' },
               { label: 'Final Approvals', sub: 'Final Approval of Homepage Design + Website Plan' }
@@ -1415,7 +1422,7 @@
             color: 'var(--phase-4)', colorHex: '#ef4444',
             durationDays: 20,
             milestones: [
-              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Internal Audits', durationDays: 5, seoSub: 'SEO Audits' },
               { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
             ]
           },
@@ -1445,8 +1452,8 @@
             color: 'var(--phase-1)', colorHex: '#8b5cf6',
             durationDays: 25,
             milestones: [
-              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting \u2022 Internal SEO Keyword Selection' },
-              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review \u2022 SEO Keywords Approved' },
+              { label: 'Internal Review', durationDays: 5, sub: 'Internal Website Plan + Homepage Design Review \u2022 Website Alignment Meeting', seoSub: 'Internal SEO Keyword Selection' },
+              { label: 'Partner Review', durationDays: 5, sub: 'Partner Website Plan + Homepage Design Review', seoSub: 'SEO Keywords Approved' },
               { label: 'Buffer \u2014 Design Revisions (Wk 3)', durationDays: 5, sub: 'Homepage and Secondary Page Designs + Website Plan Revisions \u2022 Campaign Strategy Initiated' },
               { label: 'Buffer \u2014 Design Revisions (Wk 4)', durationDays: 5, sub: 'Homepage and Secondary Page Designs + Website Plan Revisions' },
               { label: 'Final Approvals', sub: 'Final Approval of All Designs + Website Plan' }
@@ -1488,7 +1495,7 @@
             color: 'var(--phase-4)', colorHex: '#ef4444',
             durationDays: 20,
             milestones: [
-              { label: 'Internal Audits', durationDays: 5, sub: 'SEO Audits' },
+              { label: 'Internal Audits', durationDays: 5, seoSub: 'SEO Audits' },
               { label: 'Partner Audits', sub: 'Weeks 2\u20134' }
             ]
           },
@@ -1516,6 +1523,7 @@
     let currentView = 'timeline';
     let websiteType = 'template'; // 'template', 'semi-custom', 'fully-custom'
     let semiCustomDuration = '3month'; // '3month' or '4month' (only relevant for semi-custom)
+    let includeSEO = true;
     let calendarMonth = null;
     let calculatedPhases = [];
     let projectStartDate = null;
@@ -1766,6 +1774,20 @@
     function setSemiCustomDuration(duration) {
       semiCustomDuration = duration;
       recalculate();
+    }
+
+    function toggleSEO(checked) {
+      includeSEO = checked;
+      renderTimeline();
+      renderCalendar();
+      closeDetailPanel();
+    }
+
+    function getMilestoneSub(m) {
+      const parts = [];
+      if (m.sub) parts.push(m.sub);
+      if (includeSEO && m.seoSub) parts.push(m.seoSub);
+      return parts.join(' \u2022 ');
     }
 
     /* ================================================================
@@ -2069,7 +2091,8 @@
             else mPosition = 'middle';
 
             let mLabel = '';
-            let mTitle = milestone.label + (milestone.sub ? ' \u2014 ' + milestone.sub : '');
+            const mSub = getMilestoneSub(milestone);
+            let mTitle = milestone.label + (mSub ? ' \u2014 ' + mSub : '');
 
             if (isMStart) {
               mLabel = milestone.label;
@@ -2132,7 +2155,8 @@
       if (!phase) return;
 
       const milestonesHtml = phase.milestones.map(m => {
-        const subHtml = m.sub ? `<div class="milestone-sub">${m.sub}</div>` : '';
+        const sub = getMilestoneSub(m);
+        const subHtml = sub ? `<div class="milestone-sub">${sub}</div>` : '';
         let dateRangeHtml = '';
         if (!m.noDate && m.startDate && m.endDate) {
           dateRangeHtml = m.singleDay
@@ -2303,7 +2327,7 @@
           duration: phase.durationLabel,
           milestones: phase.milestones.map(m => ({
             label: m.label,
-            ...(m.sub ? { detail: m.sub } : {})
+            ...(getMilestoneSub(m) ? { detail: getMilestoneSub(m) } : {})
           }))
         }))
       };
