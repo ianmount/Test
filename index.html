@@ -1654,6 +1654,170 @@
     }
 
     .tabs-save-hint.show { opacity: 1; }
+
+    /* ===== Password Lock ===== */
+    .lock-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .lock-btn:hover {
+      border-color: var(--border-focus);
+      color: var(--text-primary);
+    }
+
+    .lock-btn.unlocked {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .lock-btn.unlocked:hover {
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    /* Password Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .modal-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      box-shadow: var(--shadow-lg);
+      width: 340px;
+      max-width: 90vw;
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .modal-subtitle {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-size: 0.9375rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      margin-bottom: 8px;
+    }
+
+    .modal-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+    }
+
+    .modal-error {
+      font-size: 0.8125rem;
+      color: #f87171;
+      min-height: 20px;
+      margin-bottom: 16px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-modal-cancel {
+      padding: 8px 18px;
+      background: transparent;
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+
+    .btn-modal-cancel:hover {
+      color: var(--text-primary);
+      border-color: var(--border-focus);
+    }
+
+    .btn-modal-submit {
+      padding: 8px 18px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background var(--transition);
+    }
+
+    .btn-modal-submit:hover {
+      background: var(--accent-hover);
+    }
+
+    /* Locked controls styling */
+    .controls-locked .control-group select,
+    .controls-locked .control-group input[type="date"] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .controls-locked .seo-toggle {
+      opacity: 0.5;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    .milestone-checkbox:disabled,
+    .comparison-milestone-checkbox:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .milestone-check-label:has(input:disabled),
+    .comparison-milestone-check-label:has(input:disabled) {
+      cursor: default;
+    }
   </style>
 </head>
 <body>
@@ -1674,6 +1838,10 @@
           <button class="view-toggle-btn" data-view="calendar" onclick="setView('calendar')">Calendar</button>
           <button class="view-toggle-btn" data-view="comparison" onclick="setView('comparison')">Comparison</button>
         </div>
+        <button class="lock-btn" id="lockBtn" onclick="handleLockBtnClick()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Edit
+        </button>
         <div class="export-menu">
           <button class="btn btn-outline" onclick="toggleExport()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -1776,6 +1944,22 @@
     <!-- Phase Detail Panel -->
     <div class="detail-panel" id="detailPanel"></div>
 
+  </div>
+
+  <!-- Password Modal -->
+  <div class="modal-overlay hidden" id="passwordModal" onclick="handleModalOverlayClick(event)">
+    <div class="modal-box">
+      <div class="modal-title">Unlock Editing</div>
+      <div class="modal-subtitle">Enter the password to enable editing of dates, milestones, and project type.</div>
+      <input type="password" class="modal-input" id="passwordInput"
+             placeholder="Password"
+             onkeydown="handlePasswordKeydown(event)">
+      <div class="modal-error" id="passwordError"></div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closePasswordModal()">Cancel</button>
+        <button class="btn-modal-submit" onclick="submitPassword()">Unlock</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -2095,6 +2279,7 @@
     let websiteType = 'template'; // 'template', 'semi-custom', 'fully-custom'
     let semiCustomDuration = '3month'; // '3month' or '4month' (only relevant for semi-custom)
     let includeSEO = true;
+    let isEditUnlocked = false; // Password-protected edit mode
     let calendarMonth = null;
     let calculatedPhases = [];
     let projectStartDate = null;
@@ -2344,6 +2529,7 @@
        ================================================================ */
 
     function setWebsiteType(type) {
+      if (!isEditUnlocked) return;
       websiteType = type;
       const semiGroup = document.getElementById('semiCustomDurationGroup');
       semiGroup.style.display = type === 'semi-custom' ? '' : 'none';
@@ -2351,11 +2537,13 @@
     }
 
     function setSemiCustomDuration(duration) {
+      if (!isEditUnlocked) return;
       semiCustomDuration = duration;
       recalculate();
     }
 
     function toggleSEO(checked) {
+      if (!isEditUnlocked) return;
       includeSEO = checked;
       renderTimeline();
       renderCalendar();
@@ -2364,6 +2552,96 @@
       }
       closeDetailPanel();
       saveToStorage();
+    }
+
+    /* ================================================================
+       PASSWORD LOCK
+       ================================================================ */
+
+    function handleLockBtnClick() {
+      if (isEditUnlocked) {
+        lockEdit();
+      } else {
+        showPasswordModal();
+      }
+    }
+
+    function showPasswordModal() {
+      const modal = document.getElementById('passwordModal');
+      const input = document.getElementById('passwordInput');
+      const error = document.getElementById('passwordError');
+      error.textContent = '';
+      input.value = '';
+      modal.classList.remove('hidden');
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closePasswordModal() {
+      document.getElementById('passwordModal').classList.add('hidden');
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target === document.getElementById('passwordModal')) {
+        closePasswordModal();
+      }
+    }
+
+    function handlePasswordKeydown(e) {
+      if (e.key === 'Enter') submitPassword();
+      if (e.key === 'Escape') closePasswordModal();
+    }
+
+    function submitPassword() {
+      const input = document.getElementById('passwordInput');
+      const error = document.getElementById('passwordError');
+      if (input.value === 'smc') {
+        isEditUnlocked = true;
+        updateLockState();
+        closePasswordModal();
+      } else {
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    function lockEdit() {
+      isEditUnlocked = false;
+      updateLockState();
+    }
+
+    function updateLockState() {
+      const btn = document.getElementById('lockBtn');
+      const controlsRow = document.querySelector('.controls-row');
+      const startDate = document.getElementById('startDate');
+      const websiteTypeEl = document.getElementById('websiteType');
+      const semiDurationEl = document.getElementById('semiCustomDuration');
+      const seoToggleEl = document.getElementById('seoToggle');
+
+      if (isEditUnlocked) {
+        btn.classList.add('unlocked');
+        btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Editing`;
+        startDate.disabled = false;
+        websiteTypeEl.disabled = false;
+        semiDurationEl.disabled = false;
+        seoToggleEl.disabled = false;
+        controlsRow.classList.remove('controls-locked');
+      } else {
+        btn.classList.remove('unlocked');
+        btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Edit`;
+        startDate.disabled = true;
+        websiteTypeEl.disabled = true;
+        semiDurationEl.disabled = true;
+        seoToggleEl.disabled = true;
+        controlsRow.classList.add('controls-locked');
+      }
+      // Re-render milestone checkboxes to reflect new lock state
+      renderTimeline();
+      if (currentView === 'comparison') renderComparison();
+      const openPhase = document.getElementById('detailPanel');
+      if (openPhase && openPhase.dataset.openPhase) {
+        showPhaseDetail(openPhase.dataset.openPhase, false);
+      }
     }
 
     function getMilestoneSub(m) {
@@ -2867,6 +3145,7 @@
      * milestoneIdx is the index in the unfiltered phase.milestones array.
      */
     function toggleMilestone(phaseKey, milestoneIdx) {
+      if (!isEditUnlocked) return;
       const key = `${phaseKey}_${milestoneIdx}`;
       if (completedMilestones[key]) {
         delete completedMilestones[key];
@@ -2889,6 +3168,7 @@
     function showPhaseDetail(phaseKey, scroll = true) {
       const phase = calculatedPhases.find(p => p.key === phaseKey);
       if (!phase) return;
+      document.getElementById('detailPanel').dataset.openPhase = phaseKey;
 
       const comp = getPhaseCompletion(phaseKey);
 
@@ -2910,6 +3190,7 @@
             <label class="milestone-check-label">
               <input type="checkbox" class="milestone-checkbox"
                      ${isChecked ? 'checked' : ''}
+                     ${!isEditUnlocked ? 'disabled' : ''}
                      onchange="toggleMilestone('${phaseKey}', ${idx})">
               <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
               <div>
@@ -2961,7 +3242,9 @@
     }
 
     function closeDetailPanel() {
-      document.getElementById('detailPanel').classList.remove('active');
+      const panel = document.getElementById('detailPanel');
+      panel.classList.remove('active');
+      delete panel.dataset.openPhase;
     }
 
     /* ================================================================
@@ -3000,6 +3283,7 @@
               <label class="comparison-milestone-check-label">
                 <input type="checkbox" class="comparison-milestone-checkbox"
                        ${isChecked ? 'checked' : ''}
+                       ${!isEditUnlocked ? 'disabled' : ''}
                        onchange="toggleMilestone('${phase.key}', ${idx})">
                 <span class="comparison-milestone-marker" style="background: ${phase.colorHex};"></span>
                 <div>
@@ -3422,6 +3706,8 @@
       }
       // applyTab bootstraps all state, renders tabs, and calls recalculate
       applyTab(activeTabId, false);
+      // Apply locked state on startup (editing is locked by default)
+      updateLockState();
     })();
   </script>
 </body>
