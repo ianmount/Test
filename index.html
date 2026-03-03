@@ -151,6 +151,15 @@
 
     .btn-outline:hover { background: var(--bg-hover); border-color: var(--text-muted); }
 
+    .btn-asana {
+      background: #f06a6a;
+      color: #fff;
+      border-color: #f06a6a;
+      text-decoration: none;
+    }
+
+    .btn-asana:hover { background: #e05555; border-color: #e05555; }
+
     /* ===== Main Layout ===== */
     .main {
       max-width: 1440px;
@@ -159,13 +168,41 @@
     }
 
     /* ===== Site Name Heading ===== */
+    .site-name-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 20px 0;
+    }
+
     .site-name-heading {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-primary);
-      margin: 0 0 20px 0;
+      margin: 0;
       letter-spacing: -0.01em;
     }
+
+    /* ===== Admin Link Input ===== */
+    .admin-link-input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: border-color var(--transition);
+    }
+
+    .admin-link-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .admin-link-input::placeholder { color: var(--text-muted); }
 
     /* ===== Controls Panel ===== */
     .controls-panel {
@@ -2149,7 +2186,13 @@
   <!-- Main -->
   <div class="main">
 
-    <h1 class="site-name-heading" id="siteNameHeading"></h1>
+    <div class="site-name-row">
+      <h1 class="site-name-heading" id="siteNameHeading"></h1>
+      <a class="btn btn-asana" id="asanaProjectBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+        <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor" style="vertical-align:-1px" aria-hidden="true"><circle cx="16" cy="7" r="7"/><circle cx="7" cy="23" r="7"/><circle cx="25" cy="23" r="7"/></svg>
+        Open in Asana
+      </a>
+    </div>
 
     <!-- Controls -->
     <div class="controls-panel">
@@ -2238,6 +2281,15 @@
       <div class="admin-panel-header">
         <h2>Admin Settings</h2>
         <p>Configure duration overrides for this website.</p>
+      </div>
+      <div class="admin-section">
+        <div class="admin-toggle-text">
+          <span class="admin-toggle-label">Asana Project Link</span>
+          <span class="admin-toggle-sub">Paste the Asana project URL for this site. The button will be visible to all users once set.</span>
+        </div>
+        <input type="url" class="admin-link-input" id="asanaLinkInput"
+               placeholder="https://app.asana.com/0/..."
+               oninput="updateAsanaLink(this.value)">
       </div>
       <div class="admin-section">
         <label class="admin-toggle-row">
@@ -2612,6 +2664,7 @@
     let useManualDurations = false;
     // manualDurations[configKey][phaseKey] = { phaseDays, milestones: {idx: days}, milestoneDaysBeforeEnd: {idx: days} }
     let manualDurations = {};
+    let asanaProjectLink = '';
 
     /* ================================================================
        BUSINESS DAY LOGIC
@@ -3917,6 +3970,8 @@
       isAdminViewActive = true;
       document.querySelector('.main').classList.add('admin-active');
       document.getElementById('adminView').classList.remove('hidden');
+      const asanaInput = document.getElementById('asanaLinkInput');
+      if (asanaInput) asanaInput.value = asanaProjectLink;
       document.getElementById('useManualDurationsToggle').checked = useManualDurations;
       const panel = document.getElementById('adminDurationsPanel');
       if (useManualDurations) {
@@ -3935,6 +3990,23 @@
       document.getElementById('adminView').classList.add('hidden');
       renderTabs();
       updateAdminHeaderBtn();
+    }
+
+    function updateAsanaLink(value) {
+      asanaProjectLink = value.trim();
+      renderAsanaButton();
+      saveToStorage();
+    }
+
+    function renderAsanaButton() {
+      const btn = document.getElementById('asanaProjectBtn');
+      if (!btn) return;
+      if (asanaProjectLink) {
+        btn.href = asanaProjectLink;
+        btn.style.display = '';
+      } else {
+        btn.style.display = 'none';
+      }
     }
 
     function handleManualDurationsToggle(checked) {
@@ -4075,7 +4147,8 @@
         calendarMonthISO: null,
         completedMilestones: {},
         useManualDurations: false,
-        manualDurations: {}
+        manualDurations: {},
+        asanaProjectLink: ''
       };
     }
 
@@ -4092,6 +4165,7 @@
       tab.completedMilestones = Object.assign({}, completedMilestones);
       tab.useManualDurations = useManualDurations;
       tab.manualDurations = manualDurations;
+      tab.asanaProjectLink = asanaProjectLink;
     }
 
     function saveToStorage() {
@@ -4173,11 +4247,13 @@
       completedMilestones = Object.assign({}, tab.completedMilestones || {});
       useManualDurations = tab.useManualDurations || false;
       manualDurations = tab.manualDurations || {};
+      asanaProjectLink = tab.asanaProjectLink || '';
       initManualDurations();
 
       // Update site name heading
       const heading = document.getElementById('siteNameHeading');
       if (heading) heading.textContent = tab.name;
+      renderAsanaButton();
 
       // Restore UI controls
       document.getElementById('startDate').value = tab.startDate;
