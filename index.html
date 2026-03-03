@@ -313,7 +313,7 @@
     /* ===== Summary Cards ===== */
     .summary-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 14px;
       margin-bottom: 20px;
     }
@@ -1065,6 +1065,110 @@
 
     .export-dropdown button:hover { background: var(--bg-hover); }
 
+    /* ===== Progress / Completion ===== */
+    .gantt-bar-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: currentColor;
+      opacity: 0.2;
+      border-radius: inherit;
+      transition: width 0.3s ease;
+      pointer-events: none;
+    }
+
+    .gantt-bar-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .gantt-completion-badge {
+      font-size: 0.5625rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.28);
+      padding: 2px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .phase-progress-section {
+      margin-bottom: 18px;
+    }
+
+    .phase-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .phase-progress-track {
+      height: 7px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-primary);
+    }
+
+    .phase-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* Milestone checkboxes */
+    .milestone-check-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .milestone-checkbox {
+      width: 15px;
+      height: 15px;
+      margin-top: 3px;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .milestones-list li.milestone-done .milestone-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .milestones-list li.milestone-done .milestone-sub {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    /* Summary overall progress card */
+    .summary-progress-bar-track {
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-primary);
+    }
+
+    .summary-progress-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 900px) {
       .summary-row { grid-template-columns: repeat(3, 1fr); }
@@ -1668,6 +1772,10 @@
     let activeTabId = 1;
     let nextTabId = 1;
 
+    // Milestone completion state for the active tab
+    // Keys are "${phaseKey}_${milestoneIndex}", values are true
+    let completedMilestones = {};
+
     /* ================================================================
        BUSINESS DAY LOGIC
        ================================================================
@@ -1950,6 +2058,7 @@
       const totalBusinessDays = calculatedPhases.reduce((sum, p) => sum + p.businessDays, 0);
       const totalCalendarDays = calendarDaysBetween(projectStartDate, projectEndDate);
       const totalWeeks = Math.ceil(totalBusinessDays / 5);
+      const overallComp = getOverallCompletion();
 
       container.innerHTML = `
         <div class="summary-card">
@@ -1971,6 +2080,13 @@
         <div class="summary-card">
           <div class="summary-card-value">${totalCalendarDays}</div>
           <div class="summary-card-label">Calendar Days</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-value highlight">${overallComp.pct}%</div>
+          <div class="summary-card-label">Actual Progress</div>
+          <div class="summary-progress-bar-track">
+            <div class="summary-progress-bar-fill" style="width: ${overallComp.pct}%;"></div>
+          </div>
         </div>
       `;
     }
@@ -2031,6 +2147,14 @@
           `<span class="gantt-milestone-dot" title="${esc(m.label)}"></span>`
         ).join('');
 
+        const comp = getPhaseCompletion(phase.key);
+        const progressFill = comp.total > 0
+          ? `<div class="gantt-bar-progress" style="width: ${comp.pct}%;"></div>`
+          : '';
+        const completionBadge = comp.total > 0
+          ? `<span class="gantt-completion-badge">${comp.completed}/${comp.total}</span>`
+          : '';
+
         return `<div class="gantt-row">
           <div class="gantt-row-label">
             <div class="phase-name">${phase.name}</div>
@@ -2047,9 +2171,11 @@
                  onmousemove="moveTooltip(event)"
                  onmouseleave="hideTooltip()"
                  onclick="showPhaseDetail('${phase.key}')">
+              ${progressFill}
               <div class="gantt-bar-content">
                 <span class="gantt-bar-label">${phase.shortName}</span>
                 <div class="gantt-milestone-dots">${milestoneDots}</div>
+                ${completionBadge}
               </div>
             </div>
           </div>
@@ -2294,30 +2420,94 @@
     }
 
     /* ================================================================
+       MILESTONE COMPLETION / COMPARISON
+       ================================================================ */
+
+    /**
+     * Returns { completed, total, pct } for a given phase,
+     * counting only milestones that are currently visible (SEO filter applied).
+     */
+    function getPhaseCompletion(phaseKey) {
+      const phase = calculatedPhases.find(p => p.key === phaseKey);
+      if (!phase) return { completed: 0, total: 0, pct: 0 };
+      const visible = phase.milestones
+        .map((m, idx) => ({ m, idx }))
+        .filter(({ m }) => !m.seoOnly || includeSEO);
+      const total = visible.length;
+      const completed = visible.filter(({ idx }) =>
+        completedMilestones[`${phaseKey}_${idx}`]
+      ).length;
+      return { completed, total, pct: total > 0 ? Math.round((completed / total) * 100) : 0 };
+    }
+
+    /**
+     * Returns { completed, total, pct } across all phases for the project.
+     */
+    function getOverallCompletion() {
+      let total = 0;
+      let completed = 0;
+      calculatedPhases.forEach(phase => {
+        const c = getPhaseCompletion(phase.key);
+        total += c.total;
+        completed += c.completed;
+      });
+      return { completed, total, pct: total > 0 ? Math.round((completed / total) * 100) : 0 };
+    }
+
+    /**
+     * Toggle a milestone's checked state, then refresh the detail panel and Gantt.
+     * milestoneIdx is the index in the unfiltered phase.milestones array.
+     */
+    function toggleMilestone(phaseKey, milestoneIdx) {
+      const key = `${phaseKey}_${milestoneIdx}`;
+      if (completedMilestones[key]) {
+        delete completedMilestones[key];
+      } else {
+        completedMilestones[key] = true;
+      }
+      showPhaseDetail(phaseKey, false); // re-render panel without scrolling
+      renderTimeline();
+      renderSummary();
+      saveToStorage();
+    }
+
+    /* ================================================================
        PHASE DETAIL PANEL
        ================================================================ */
 
-    function showPhaseDetail(phaseKey) {
+    function showPhaseDetail(phaseKey, scroll = true) {
       const phase = calculatedPhases.find(p => p.key === phaseKey);
       if (!phase) return;
 
-      const milestonesHtml = getVisibleMilestones(phase.milestones).map(m => {
-        const sub = getMilestoneSub(m);
-        const subHtml = sub ? `<div class="milestone-sub">${sub}</div>` : '';
-        let dateRangeHtml = '';
-        if (!m.noDate && m.startDate && m.endDate) {
-          dateRangeHtml = m.singleDay
-            ? `<div class="milestone-sub">${formatDate(m.startDate)}</div>`
-            : `<div class="milestone-sub">${formatDate(m.startDate)} \u2013 ${formatDate(m.endDate)}</div>`;
-        }
-        return `<li>
-          <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
-          <div>
-            <div class="milestone-text">${m.label}</div>
-            ${dateRangeHtml}${subHtml}
-          </div>
-        </li>`;
-      }).join('');
+      const comp = getPhaseCompletion(phaseKey);
+
+      const milestonesHtml = phase.milestones
+        .map((m, idx) => ({ m, idx }))
+        .filter(({ m }) => !m.seoOnly || includeSEO)
+        .map(({ m, idx }) => {
+          const sub = getMilestoneSub(m);
+          const subHtml = sub ? `<div class="milestone-sub">${sub}</div>` : '';
+          let dateRangeHtml = '';
+          if (!m.noDate && m.startDate && m.endDate) {
+            dateRangeHtml = m.singleDay
+              ? `<div class="milestone-sub">${formatDate(m.startDate)}</div>`
+              : `<div class="milestone-sub">${formatDate(m.startDate)} \u2013 ${formatDate(m.endDate)}</div>`;
+          }
+          const key = `${phaseKey}_${idx}`;
+          const isChecked = !!completedMilestones[key];
+          return `<li class="${isChecked ? 'milestone-done' : ''}">
+            <label class="milestone-check-label">
+              <input type="checkbox" class="milestone-checkbox"
+                     ${isChecked ? 'checked' : ''}
+                     onchange="toggleMilestone('${phaseKey}', ${idx})">
+              <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
+              <div>
+                <div class="milestone-text">${m.label}</div>
+                ${dateRangeHtml}${subHtml}
+              </div>
+            </label>
+          </li>`;
+        }).join('');
 
       const panel = document.getElementById('detailPanel');
       panel.innerHTML = `
@@ -2343,11 +2533,20 @@
             <span class="meta-value">${phase.businessDays}</span>
           </div>
         </div>
+        <div class="phase-progress-section">
+          <div class="phase-progress-header">
+            <span>Actual Progress</span>
+            <span>${comp.completed} of ${comp.total} milestones &mdash; ${comp.pct}%</span>
+          </div>
+          <div class="phase-progress-track">
+            <div class="phase-progress-fill" style="width: ${comp.pct}%; background: ${phase.colorHex};"></div>
+          </div>
+        </div>
         <div class="milestones-heading">Milestones</div>
         <ul class="milestones-list">${milestonesHtml}</ul>
       `;
       panel.classList.add('active');
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (scroll) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function closeDetailPanel() {
@@ -2523,7 +2722,8 @@
         semiCustomDuration: '3month',
         includeSEO: true,
         currentView: 'timeline',
-        calendarMonthISO: null
+        calendarMonthISO: null,
+        completedMilestones: {}
       };
     }
 
@@ -2537,6 +2737,7 @@
       tab.includeSEO = includeSEO;
       tab.currentView = currentView;
       tab.calendarMonthISO = calendarMonth ? calendarMonth.toISOString() : null;
+      tab.completedMilestones = Object.assign({}, completedMilestones);
     }
 
     function saveToStorage() {
@@ -2612,6 +2813,7 @@
       semiCustomDuration = tab.semiCustomDuration;
       includeSEO = tab.includeSEO;
       calendarMonth = tab.calendarMonthISO ? new Date(tab.calendarMonthISO) : null;
+      completedMilestones = Object.assign({}, tab.completedMilestones || {});
 
       // Restore UI controls
       document.getElementById('startDate').value = tab.startDate;
