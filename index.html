@@ -1553,6 +1553,229 @@
       body { background: #fff; color: #000; }
     }
 
+    /* ===== Admin Tab ===== */
+    .tab-admin {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 14px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      cursor: pointer;
+      background: var(--bg-tertiary);
+      border: 1px solid transparent;
+      border-bottom: none;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+      position: relative;
+      bottom: -1px;
+      flex-shrink: 0;
+      user-select: none;
+      font-family: inherit;
+    }
+
+    .tab-admin.tab-locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .tab-admin:not(.tab-locked):hover {
+      background: rgba(245, 158, 11, 0.08);
+      color: #f59e0b;
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .tab-admin.active {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.35);
+      border-bottom-color: var(--bg-primary);
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
+    /* ===== Admin View ===== */
+    .main.admin-active > :not(.admin-view) {
+      display: none !important;
+    }
+
+    .admin-view {
+      padding: 32px 0;
+      max-width: 860px;
+    }
+
+    .admin-view.hidden {
+      display: none;
+    }
+
+    .admin-panel-header {
+      margin-bottom: 24px;
+    }
+
+    .admin-panel-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .admin-panel-header p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .admin-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+    }
+
+    .admin-toggle-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .admin-toggle-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 3px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .admin-toggle-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .admin-toggle-label {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .admin-toggle-sub {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+
+    .admin-durations-panel {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .admin-durations-panel.hidden {
+      display: none;
+    }
+
+    .admin-config-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .admin-config-header {
+      padding: 11px 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-primary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .admin-phases-list {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .admin-phase-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .admin-phase-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .admin-phase-name {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .admin-field-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .admin-field-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .admin-duration-input {
+      width: 68px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.8125rem;
+      font-family: inherit;
+      padding: 5px 8px;
+      outline: none;
+      text-align: right;
+      transition: border-color var(--transition);
+    }
+
+    .admin-duration-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .admin-milestone-rows {
+      margin-left: 20px;
+      padding-left: 12px;
+      border-left: 2px solid var(--border-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .admin-milestone-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .admin-milestone-name {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      flex: 1;
+      min-width: 0;
+    }
+
     /* ===== Tabs Bar ===== */
     .tabs-bar {
       background: var(--bg-secondary);
@@ -1972,6 +2195,26 @@
     <!-- Phase Detail Panel -->
     <div class="detail-panel" id="detailPanel"></div>
 
+    <!-- Admin View -->
+    <div class="admin-view hidden" id="adminView">
+      <div class="admin-panel-header">
+        <h2>Admin Settings</h2>
+        <p>Configure overrides that apply across all project tabs.</p>
+      </div>
+      <div class="admin-section">
+        <label class="admin-toggle-row">
+          <input type="checkbox" id="useManualDurationsToggle" onchange="handleManualDurationsToggle(this.checked)">
+          <div class="admin-toggle-text">
+            <span class="admin-toggle-label">Use manual phase &amp; milestone durations</span>
+            <span class="admin-toggle-sub">Override standard durations for each project type. Uncheck to restore standard durations.</span>
+          </div>
+        </label>
+        <div class="admin-durations-panel hidden" id="adminDurationsPanel">
+          <!-- Rendered dynamically by renderAdminDurationsPanel() -->
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Password Modal -->
@@ -2322,6 +2565,12 @@
     // Keys are "${phaseKey}_${milestoneIndex}", values are true
     let completedMilestones = {};
 
+    // Admin state
+    let isAdminViewActive = false;
+    let useManualDurations = false;
+    // manualDurations[configKey][phaseKey] = { phaseDays, milestones: {idx: days}, milestoneDaysBeforeEnd: {idx: days} }
+    let manualDurations = {};
+
     /* ================================================================
        BUSINESS DAY LOGIC
        ================================================================
@@ -2406,6 +2655,13 @@
       return getCurrentConfig().phases;
     }
 
+    function getCurrentConfigKey() {
+      if (websiteType === 'semi-custom') {
+        return semiCustomDuration === '3month' ? 'semi-custom-3month' : 'semi-custom-4month';
+      }
+      return websiteType;
+    }
+
     function formatDuration(businessDays) {
       if (businessDays < 5) {
         return businessDays === 1 ? '1 day' : businessDays + ' days';
@@ -2435,17 +2691,21 @@
      * concrete startDate / endDate for each sub-milestone.
      * Milestones without `durationDays` consume the remainder of the phase.
      */
-    function computeMilestoneDates(milestones, phaseStart, phaseEnd, mode) {
+    function computeMilestoneDates(milestones, phaseStart, phaseEnd, mode, configKey, phaseKey) {
       // Total business days from phaseStart up to (not including) phaseEnd
       const totalBizDays = countBusinessDays(phaseStart, phaseEnd);
       let offset = 0; // cumulative business days already allocated
 
-      return milestones.map(m => {
+      return milestones.map((m, mIdx) => {
         // Milestones with daysBeforeEnd are anchored to the phase end,
         // independent of the sequential offset from the start.
         // They span from their computed start through the end of the phase.
         if (m.daysBeforeEnd !== undefined) {
-          const startOffset = totalBizDays - m.daysBeforeEnd;
+          const manualDbe = (useManualDurations && configKey && phaseKey)
+            ? manualDurations[configKey]?.[phaseKey]?.milestoneDaysBeforeEnd?.[mIdx]
+            : undefined;
+          const effectiveDbe = manualDbe !== undefined ? manualDbe : m.daysBeforeEnd;
+          const startOffset = totalBizDays - effectiveDbe;
           const mStart = startOffset <= 0
             ? new Date(phaseStart)
             : addBusinessDays(phaseStart, startOffset);
@@ -2474,8 +2734,12 @@
           mEnd = addBusinessDays(phaseStart, effectiveOffset + resolvedDuration - 1);
           if (!m.parallelStart) offset += resolvedDuration;
         } else if (m.durationDays !== undefined) {
-          mEnd = addBusinessDays(phaseStart, effectiveOffset + m.durationDays - 1);
-          if (!m.parallelStart) offset += m.durationDays;
+          const manualDays = (useManualDurations && configKey && phaseKey)
+            ? manualDurations[configKey]?.[phaseKey]?.milestones?.[mIdx]
+            : undefined;
+          const effectiveDays = manualDays !== undefined ? manualDays : m.durationDays;
+          mEnd = addBusinessDays(phaseStart, effectiveOffset + effectiveDays - 1);
+          if (!m.parallelStart) offset += effectiveDays;
         } else {
           mEnd = new Date(phaseEnd);
         }
@@ -2501,9 +2765,13 @@
 
       calculatedPhases = [];
       let currentStart = new Date(adjustedStart);
+      const configKey = getCurrentConfigKey();
 
       getCurrentPhases().forEach(phase => {
-        const businessDays = phase.durationDays;
+        const manualPhaseDays = (useManualDurations)
+          ? manualDurations[configKey]?.[phase.key]?.phaseDays
+          : undefined;
+        const businessDays = manualPhaseDays !== undefined ? manualPhaseDays : phase.durationDays;
         const endDate = addBusinessDays(currentStart, businessDays);
 
         // Enrich milestone dates for phases that define sub-milestone durations
@@ -2511,7 +2779,7 @@
           m => m.durationDays !== undefined || m.singleDay || m.daysBeforeEnd !== undefined
         );
         const milestones = hasDurationMilestones
-          ? computeMilestoneDates(phase.milestones, currentStart, endDate, null)
+          ? computeMilestoneDates(phase.milestones, currentStart, endDate, null, configKey, phase.key)
           : phase.milestones;
 
         calculatedPhases.push({
@@ -2635,6 +2903,7 @@
 
     function lockEdit() {
       isEditUnlocked = false;
+      if (isAdminViewActive) hideAdminView();
       updateLockState();
     }
 
@@ -2670,6 +2939,8 @@
       if (openPhase && openPhase.dataset.openPhase) {
         showPhaseDetail(openPhase.dataset.openPhase, false);
       }
+      // Update admin tab locked/unlocked appearance
+      renderTabs();
     }
 
     function getMilestoneSub(m) {
@@ -3540,6 +3811,204 @@
     }
 
     /* ================================================================
+       ADMIN PANEL
+       ================================================================ */
+
+    /** Populate manualDurations with defaults from TIMELINE_CONFIGS for any missing entries. */
+    function initManualDurations() {
+      Object.keys(TIMELINE_CONFIGS).forEach(configKey => {
+        if (!manualDurations[configKey]) manualDurations[configKey] = {};
+        TIMELINE_CONFIGS[configKey].phases.forEach(phase => {
+          if (!manualDurations[configKey][phase.key]) {
+            manualDurations[configKey][phase.key] = { phaseDays: phase.durationDays, milestones: {}, milestoneDaysBeforeEnd: {} };
+          } else {
+            const entry = manualDurations[configKey][phase.key];
+            if (entry.phaseDays === undefined || entry.phaseDays === null) entry.phaseDays = phase.durationDays;
+            if (!entry.milestones) entry.milestones = {};
+            if (!entry.milestoneDaysBeforeEnd) entry.milestoneDaysBeforeEnd = {};
+          }
+          phase.milestones.forEach((m, idx) => {
+            const entry = manualDurations[configKey][phase.key];
+            if (m.durationDays !== undefined && entry.milestones[idx] === undefined) {
+              entry.milestones[idx] = m.durationDays;
+            }
+            if (m.daysBeforeEnd !== undefined && entry.milestoneDaysBeforeEnd[idx] === undefined) {
+              entry.milestoneDaysBeforeEnd[idx] = m.daysBeforeEnd;
+            }
+          });
+        });
+      });
+    }
+
+    function saveAdminSettings() {
+      try {
+        localStorage.setItem('wte_admin_useManual', JSON.stringify(useManualDurations));
+        localStorage.setItem('wte_admin_durations', JSON.stringify(manualDurations));
+      } catch (e) { /* storage may be unavailable */ }
+    }
+
+    function loadAdminSettings() {
+      try {
+        const storedUse = localStorage.getItem('wte_admin_useManual');
+        const storedDurations = localStorage.getItem('wte_admin_durations');
+        if (storedUse !== null) useManualDurations = JSON.parse(storedUse);
+        if (storedDurations) manualDurations = JSON.parse(storedDurations);
+      } catch (e) { /* corrupt storage — ignore */ }
+      initManualDurations();
+    }
+
+    function handleAdminTabClick() {
+      if (!isEditUnlocked) {
+        showPasswordModal();
+        return;
+      }
+      if (isAdminViewActive) {
+        hideAdminView();
+      } else {
+        showAdminView();
+      }
+    }
+
+    function showAdminView() {
+      isAdminViewActive = true;
+      document.querySelector('.main').classList.add('admin-active');
+      document.getElementById('adminView').classList.remove('hidden');
+      document.getElementById('useManualDurationsToggle').checked = useManualDurations;
+      const panel = document.getElementById('adminDurationsPanel');
+      if (useManualDurations) {
+        panel.classList.remove('hidden');
+        renderAdminDurationsPanel();
+      } else {
+        panel.classList.add('hidden');
+      }
+      renderTabs();
+    }
+
+    function hideAdminView() {
+      isAdminViewActive = false;
+      document.querySelector('.main').classList.remove('admin-active');
+      document.getElementById('adminView').classList.add('hidden');
+      renderTabs();
+    }
+
+    function handleManualDurationsToggle(checked) {
+      useManualDurations = checked;
+      const panel = document.getElementById('adminDurationsPanel');
+      if (checked) {
+        initManualDurations();
+        panel.classList.remove('hidden');
+        renderAdminDurationsPanel();
+      } else {
+        panel.classList.add('hidden');
+      }
+      saveAdminSettings();
+      recalculate();
+    }
+
+    function updateManualDuration(input) {
+      const configKey = input.dataset.config;
+      const phaseKey = input.dataset.phase;
+      const type = input.dataset.type;
+      let value = parseInt(input.value, 10);
+      if (isNaN(value) || value < 1) { value = 1; input.value = 1; }
+
+      if (!manualDurations[configKey]) manualDurations[configKey] = {};
+      if (!manualDurations[configKey][phaseKey]) {
+        manualDurations[configKey][phaseKey] = { phaseDays: null, milestones: {}, milestoneDaysBeforeEnd: {} };
+      }
+      const entry = manualDurations[configKey][phaseKey];
+
+      if (type === 'phase') {
+        entry.phaseDays = value;
+      } else if (type === 'milestone-duration') {
+        const mIdx = parseInt(input.dataset.milestone, 10);
+        if (!entry.milestones) entry.milestones = {};
+        entry.milestones[mIdx] = value;
+      } else if (type === 'milestone-dbe') {
+        const mIdx = parseInt(input.dataset.milestone, 10);
+        if (!entry.milestoneDaysBeforeEnd) entry.milestoneDaysBeforeEnd = {};
+        entry.milestoneDaysBeforeEnd[mIdx] = value;
+      }
+      saveAdminSettings();
+      recalculate();
+    }
+
+    function renderAdminDurationsPanel() {
+      const panel = document.getElementById('adminDurationsPanel');
+      if (!panel) return;
+
+      const configLabels = {
+        'template': 'Template \u2014 3 Month',
+        'semi-custom-3month': 'Semi-Custom \u2014 3 Month',
+        'semi-custom-4month': 'Semi-Custom \u2014 4 Month',
+        'fully-custom': 'Fully Custom \u2014 4 Month'
+      };
+
+      let html = '';
+      Object.keys(TIMELINE_CONFIGS).forEach(configKey => {
+        const config = TIMELINE_CONFIGS[configKey];
+        html += `<div class="admin-config-card">`;
+        html += `<div class="admin-config-header">${configLabels[configKey] || esc(config.label)}</div>`;
+        html += `<div class="admin-phases-list">`;
+
+        config.phases.forEach(phase => {
+          const entry = manualDurations[configKey]?.[phase.key] || {};
+          const phaseDays = entry.phaseDays !== undefined ? entry.phaseDays : phase.durationDays;
+
+          html += `<div class="admin-phase-block">`;
+          html += `<div class="admin-phase-header">`;
+          html += `<span class="admin-phase-name">${esc(phase.name)}</span>`;
+          html += `<div class="admin-field-group">`;
+          html += `<span class="admin-field-label">Phase duration (days)</span>`;
+          html += `<input type="number" class="admin-duration-input" min="1" max="999" value="${phaseDays}"
+                         data-config="${configKey}" data-phase="${esc(phase.key)}" data-type="phase"
+                         onchange="updateManualDuration(this)">`;
+          html += `</div></div>`;
+
+          // Editable milestones: those with durationDays or daysBeforeEnd
+          const editableMilestones = phase.milestones
+            .map((m, idx) => ({ m, idx }))
+            .filter(({ m }) => m.durationDays !== undefined || m.daysBeforeEnd !== undefined);
+
+          if (editableMilestones.length > 0) {
+            html += `<div class="admin-milestone-rows">`;
+            editableMilestones.forEach(({ m, idx }) => {
+              if (m.durationDays !== undefined) {
+                const msOverrides = entry.milestones || {};
+                const days = msOverrides[idx] !== undefined ? msOverrides[idx] : m.durationDays;
+                html += `<div class="admin-milestone-row">`;
+                html += `<span class="admin-milestone-name">${esc(m.label)}</span>`;
+                html += `<div class="admin-field-group">`;
+                html += `<span class="admin-field-label">Duration (days)</span>`;
+                html += `<input type="number" class="admin-duration-input" min="1" max="999" value="${days}"
+                               data-config="${configKey}" data-phase="${esc(phase.key)}" data-milestone="${idx}" data-type="milestone-duration"
+                               onchange="updateManualDuration(this)">`;
+                html += `</div></div>`;
+              } else if (m.daysBeforeEnd !== undefined) {
+                const dbeOverrides = entry.milestoneDaysBeforeEnd || {};
+                const dbe = dbeOverrides[idx] !== undefined ? dbeOverrides[idx] : m.daysBeforeEnd;
+                html += `<div class="admin-milestone-row">`;
+                html += `<span class="admin-milestone-name">${esc(m.label)}</span>`;
+                html += `<div class="admin-field-group">`;
+                html += `<span class="admin-field-label">Days before end</span>`;
+                html += `<input type="number" class="admin-duration-input" min="1" max="999" value="${dbe}"
+                               data-config="${configKey}" data-phase="${esc(phase.key)}" data-milestone="${idx}" data-type="milestone-dbe"
+                               onchange="updateManualDuration(this)">`;
+                html += `</div></div>`;
+              }
+            });
+            html += `</div>`;
+          }
+          html += `</div>`; // admin-phase-block
+        });
+
+        html += `</div></div>`; // admin-phases-list, admin-config-card
+      });
+
+      panel.innerHTML = html;
+    }
+
+    /* ================================================================
        TAB MANAGEMENT & PERSISTENCE
        ================================================================ */
 
@@ -3640,6 +4109,7 @@
      * @param {boolean} [saveFirst=true]  whether to snapshot the current tab first
      */
     function applyTab(tabId, saveFirst = true) {
+      if (isAdminViewActive) hideAdminView();
       if (saveFirst && tabId !== activeTabId) syncActiveTabState();
       activeTabId = tabId;
       const tab = tabs.find(t => t.id === tabId);
@@ -3710,7 +4180,7 @@
       if (!bar) return;
 
       const tabsHtml = tabs.map(tab => {
-        const isActive = tab.id === activeTabId;
+        const isActive = !isAdminViewActive && (tab.id === activeTabId);
         const closeBtn = tabs.length > 1
           ? `<button class="tab-close" title="Close tab"
                onclick="closeTab(${tab.id}, event)">&times;</button>`
@@ -3724,9 +4194,21 @@
         </div>`;
       }).join('');
 
+      const adminLocked = !isEditUnlocked;
+      const adminActive = isAdminViewActive;
+      const adminTabHtml = `<button class="tab-admin${adminActive ? ' active' : ''}${adminLocked ? ' tab-locked' : ''}"
+        onclick="handleAdminTabClick()"
+        title="${adminLocked ? 'Unlock editing to access Admin settings' : 'Admin settings'}">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Admin
+      </button>`;
+
       bar.innerHTML = tabsHtml
         + `<button class="tab-add" onclick="addTab()" title="Add new website tab">+</button>`
-        + `<span class="tabs-save-hint" id="tabsSaveHint">Saved</span>`;
+        + `<span class="tabs-save-hint" id="tabsSaveHint">Saved</span>`
+        + adminTabHtml;
     }
 
     /* ================================================================
@@ -3734,6 +4216,7 @@
        ================================================================ */
 
     (function init() {
+      loadAdminSettings();
       let loaded = loadFromStorage();
       if (!loaded) {
         // First visit — create a single default tab
