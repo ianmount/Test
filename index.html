@@ -1192,6 +1192,34 @@
       opacity: 0.6;
     }
 
+    .milestones-list li.milestone-overdue .milestone-text {
+      color: #ef4444;
+    }
+
+    .milestones-list li.milestone-overdue .milestone-marker {
+      background: #ef4444 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    }
+
+    .milestones-list li.milestone-overdue .milestone-sub {
+      color: #f87171;
+    }
+
+    .milestone-overdue-badge {
+      display: inline-block;
+      font-size: 0.5625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
     /* Summary overall progress card */
     .summary-progress-bar-track {
       height: 4px;
@@ -2782,7 +2810,7 @@
           <div class="gantt-row-label">
             <div class="phase-name">${phase.name}</div>
             <div class="phase-dates">${formatDateShort(phase.startDate)} \u2013 ${formatDateShort(phase.endDate)}</div>
-            <div class="phase-duration">${phase.durationLabel} (${phase.rangeLabel})</div>
+            <div class="phase-duration">${phase.durationLabel}</div>
           </div>
           <div class="gantt-row-timeline">
             <div class="gantt-grid-lines">${gridLines}</div>
@@ -3172,6 +3200,9 @@
 
       const comp = getPhaseCompletion(phaseKey);
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const milestonesHtml = phase.milestones
         .map((m, idx) => ({ m, idx }))
         .filter(({ m }) => !m.seoOnly || includeSEO)
@@ -3186,7 +3217,10 @@
           }
           const key = `${phaseKey}_${idx}`;
           const isChecked = !!completedMilestones[key];
-          return `<li class="${isChecked ? 'milestone-done' : ''}">
+          const isOverdue = !isChecked && m.endDate && new Date(m.endDate) < today;
+          const liClass = isChecked ? 'milestone-done' : isOverdue ? 'milestone-overdue' : '';
+          const overdueBadge = isOverdue ? '<span class="milestone-overdue-badge">Overdue</span>' : '';
+          return `<li class="${liClass}">
             <label class="milestone-check-label">
               <input type="checkbox" class="milestone-checkbox"
                      ${isChecked ? 'checked' : ''}
@@ -3194,7 +3228,7 @@
                      onchange="toggleMilestone('${phaseKey}', ${idx})">
               <span class="milestone-marker" style="background: ${phase.colorHex};"></span>
               <div>
-                <div class="milestone-text">${m.label}</div>
+                <div class="milestone-text">${m.label}${overdueBadge}</div>
                 ${dateRangeHtml}${subHtml}
               </div>
             </label>
