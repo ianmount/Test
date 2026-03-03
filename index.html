@@ -292,22 +292,32 @@
       margin: 0;
     }
 
-    /* ===== Warning Banner ===== */
-    .past-warning {
-      background: var(--warning-bg);
-      border: 1px solid var(--warning-border);
+    /* ===== Status Banner ===== */
+    .status-banner {
       border-radius: var(--radius);
       padding: 10px 16px;
       font-size: 0.8125rem;
-      color: var(--warning-text);
+      font-weight: 500;
       margin-bottom: 20px;
       display: none;
       align-items: center;
       gap: 8px;
     }
 
-    .past-warning.active {
+    .status-banner.active {
       display: flex;
+    }
+
+    .status-banner.on-track {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .status-banner.off-track {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
     }
 
     /* ===== Summary Cards ===== */
@@ -1686,11 +1696,8 @@
       </div>
     </div>
 
-    <!-- Past date warning -->
-    <div class="past-warning" id="pastWarning">
-      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-      <span>The selected start date is in the past. Timeline dates reflect historical scheduling.</span>
-    </div>
+    <!-- Project Status Banner -->
+    <div class="status-banner" id="statusBanner"></div>
 
     <!-- Summary Cards -->
     <div class="summary-row" id="summaryRow"></div>
@@ -2283,12 +2290,6 @@
 
       projectEndDate = calculatedPhases[calculatedPhases.length - 1].endDate;
 
-      // Past date warning
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const warningEl = document.getElementById('pastWarning');
-      warningEl.classList.toggle('active', startDate < today);
-
       // Set calendar month to start date's month on first calc
       if (!calendarMonth) {
         calendarMonth = new Date(projectStartDate.getFullYear(), projectStartDate.getMonth(), 1);
@@ -2391,6 +2392,7 @@
           </div>
         </div>
       `;
+      updateStatusBanner();
     }
 
     /* ================================================================
@@ -2754,6 +2756,45 @@
         completed += c.completed;
       });
       return { completed, total, pct: total > 0 ? Math.round((completed / total) * 100) : 0 };
+    }
+
+    function updateStatusBanner() {
+      const banner = document.getElementById('statusBanner');
+      if (!projectStartDate || !projectEndDate) {
+        banner.className = 'status-banner';
+        banner.innerHTML = '';
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (today < projectStartDate) {
+        banner.className = 'status-banner';
+        banner.innerHTML = '';
+        return;
+      }
+
+      let projectedPct;
+      if (today >= projectEndDate) {
+        projectedPct = 100;
+      } else {
+        const totalMs = projectEndDate.getTime() - projectStartDate.getTime();
+        const elapsedMs = today.getTime() - projectStartDate.getTime();
+        projectedPct = Math.round((elapsedMs / totalMs) * 100);
+      }
+
+      const actualPct = getOverallCompletion().pct;
+      const isOnTrack = actualPct >= projectedPct;
+
+      const checkIcon = `<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
+      const warnIcon = `<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>`;
+
+      banner.className = `status-banner active ${isOnTrack ? 'on-track' : 'off-track'}`;
+      banner.innerHTML = `
+        ${isOnTrack ? checkIcon : warnIcon}
+        <span><strong>${isOnTrack ? 'On Track' : 'Off Track'}</strong> — ${actualPct}% complete · ${projectedPct}% projected</span>
+      `;
     }
 
     /**
