@@ -160,6 +160,15 @@
 
     .btn-asana:hover { background: #e05555; border-color: #e05555; }
 
+    .btn-staging {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+      text-decoration: none;
+    }
+
+    .btn-staging:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
     /* ===== Main Layout ===== */
     .main {
       max-width: 1440px;
@@ -2318,6 +2327,10 @@
         <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor" style="vertical-align:-1px" aria-hidden="true"><circle cx="16" cy="7" r="7"/><circle cx="7" cy="23" r="7"/><circle cx="25" cy="23" r="7"/></svg>
         Open in Asana
       </a>
+      <a class="btn btn-staging" id="stagingSiteBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Staging Site
+      </a>
     </div>
 
     <!-- Controls -->
@@ -2416,6 +2429,15 @@
         <input type="url" class="admin-link-input" id="asanaLinkInput"
                placeholder="https://app.asana.com/0/..."
                oninput="updateAsanaLink(this.value)">
+      </div>
+      <div class="admin-section">
+        <div class="admin-toggle-text">
+          <span class="admin-toggle-label">Staging Site Link</span>
+          <span class="admin-toggle-sub">Paste the staging site URL for this project. The button will be visible to all users once set.</span>
+        </div>
+        <input type="url" class="admin-link-input" id="stagingSiteLinkInput"
+               placeholder="https://staging.example.com"
+               oninput="updateStagingLink(this.value)">
       </div>
       <div class="admin-section">
         <label class="admin-toggle-row">
@@ -2808,6 +2830,7 @@
     // manualDurations[configKey][phaseKey] = { phaseDays, milestones: {idx: days}, milestoneDaysBeforeEnd: {idx: days} }
     let manualDurations = {};
     let asanaProjectLink = '';
+    let stagingSiteLink = '';
 
     /* ================================================================
        BUSINESS DAY LOGIC
@@ -4223,6 +4246,8 @@
       document.getElementById('adminView').classList.remove('hidden');
       const asanaInput = document.getElementById('asanaLinkInput');
       if (asanaInput) asanaInput.value = asanaProjectLink;
+      const stagingInput = document.getElementById('stagingSiteLinkInput');
+      if (stagingInput) stagingInput.value = stagingSiteLink;
       document.getElementById('useManualDurationsToggle').checked = useManualDurations;
       const panel = document.getElementById('adminDurationsPanel');
       if (useManualDurations) {
@@ -4254,6 +4279,23 @@
       if (!btn) return;
       if (asanaProjectLink) {
         btn.href = asanaProjectLink;
+        btn.style.display = '';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
+    function updateStagingLink(value) {
+      stagingSiteLink = value.trim();
+      renderStagingButton();
+      saveToStorage();
+    }
+
+    function renderStagingButton() {
+      const btn = document.getElementById('stagingSiteBtn');
+      if (!btn) return;
+      if (stagingSiteLink) {
+        btn.href = stagingSiteLink;
         btn.style.display = '';
       } else {
         btn.style.display = 'none';
@@ -4399,7 +4441,8 @@
         completedMilestones: {},
         useManualDurations: false,
         manualDurations: {},
-        asanaProjectLink: ''
+        asanaProjectLink: '',
+        stagingSiteLink: ''
       };
     }
 
@@ -4417,6 +4460,7 @@
       tab.useManualDurations = useManualDurations;
       tab.manualDurations = manualDurations;
       tab.asanaProjectLink = asanaProjectLink;
+      tab.stagingSiteLink = stagingSiteLink;
     }
 
     function saveToStorage() {
@@ -4500,12 +4544,14 @@
       useManualDurations = tab.useManualDurations || false;
       manualDurations = tab.manualDurations || {};
       asanaProjectLink = tab.asanaProjectLink || '';
+      stagingSiteLink = tab.stagingSiteLink || '';
       initManualDurations();
 
       // Update site name heading
       const heading = document.getElementById('siteNameHeading');
       if (heading) heading.textContent = tab.name;
       renderAsanaButton();
+      renderStagingButton();
 
       // Restore UI controls
       document.getElementById('startDate').value = tab.startDate;
