@@ -2136,6 +2136,123 @@
     .comparison-milestone-check-label:has(input:disabled) {
       cursor: default;
     }
+
+    /* ===== Share Tab Button ===== */
+    .tab-share {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+      opacity: 0;
+    }
+
+    .tab:hover .tab-share,
+    .tab.active .tab-share {
+      opacity: 1;
+    }
+
+    .tab-share:hover {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    /* ===== Shared View Banner ===== */
+    .shared-view-banner {
+      background: rgba(79, 110, 247, 0.1);
+      border-bottom: 1px solid rgba(79, 110, 247, 0.25);
+      padding: 9px 32px;
+      font-size: 0.8125rem;
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shared-view-banner.hidden {
+      display: none;
+    }
+
+    /* ===== Share Modal ===== */
+    .share-modal-box {
+      width: 440px;
+    }
+
+    .share-modal-url {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-family: inherit;
+      outline: none;
+      cursor: text;
+      margin-bottom: 8px;
+      resize: none;
+      height: 68px;
+      line-height: 1.5;
+    }
+
+    .share-modal-url:focus {
+      border-color: var(--border-focus);
+    }
+
+    .share-copy-feedback {
+      font-size: 0.75rem;
+      color: #34d399;
+      min-height: 18px;
+      margin-bottom: 10px;
+    }
+
+    .share-modal-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-share-copy {
+      padding: 8px 18px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background var(--transition);
+      flex: 1;
+    }
+
+    .btn-share-copy:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-share-email {
+      padding: 8px 18px;
+      background: transparent;
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--transition);
+      flex: 1;
+    }
+
+    .btn-share-email:hover {
+      color: var(--text-primary);
+      border-color: var(--border-focus);
+    }
   </style>
 </head>
 <body>
@@ -2178,6 +2295,15 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Shared View Banner -->
+  <div class="shared-view-banner hidden" id="sharedViewBanner">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+    Shared view &mdash; read only. This is a snapshot shared with you.
   </div>
 
   <!-- Tabs Bar -->
@@ -2305,6 +2431,21 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay hidden" id="shareModal" onclick="handleShareModalOverlayClick(event)">
+    <div class="modal-box share-modal-box">
+      <div class="modal-title" id="shareModalTitle">Share Tab</div>
+      <div class="modal-subtitle">Send this link to share a read-only view of this tab. Recipients will only see this tab and cannot edit anything.</div>
+      <textarea class="share-modal-url" id="shareModalUrl" readonly onclick="this.select()"></textarea>
+      <div class="share-copy-feedback" id="shareCopyFeedback"></div>
+      <div class="share-modal-actions">
+        <button class="btn-share-copy" onclick="copyShareLink()">Copy Link</button>
+        <button class="btn-share-email" onclick="emailShareLink()">Send via Email</button>
+        <button class="btn-modal-cancel" onclick="closeShareModal()">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- Password Modal -->
@@ -2661,6 +2802,8 @@
 
     // Admin state
     let isAdminViewActive = false;
+    let isSharedView = false;     // true when loaded from a ?share= URL
+    let shareModalTabId = null;   // tab id currently shown in share modal
     let useManualDurations = false;
     // manualDurations[configKey][phaseKey] = { phaseDays, milestones: {idx: days}, milestoneDaysBeforeEnd: {idx: days} }
     let manualDurations = {};
@@ -3004,6 +3147,12 @@
 
     function updateLockState() {
       const btn = document.getElementById('lockBtn');
+      if (isSharedView) {
+        // In shared view: hide the lock button and keep everything locked
+        btn.style.display = 'none';
+        document.querySelector('.controls-row').classList.add('controls-locked');
+        return;
+      }
       const controlsRow = document.querySelector('.controls-row');
       const startDate = document.getElementById('startDate');
       const websiteTypeEl = document.getElementById('websiteType');
@@ -3037,6 +3186,94 @@
       // Update admin tab locked/unlocked appearance
       renderTabs();
       updateAdminHeaderBtn();
+    }
+
+    /* ================================================================
+       SHARED VIEW — URL-based read-only tab sharing
+       ================================================================ */
+
+    function encodeShareData(data) {
+      try {
+        return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      } catch (e) { return null; }
+    }
+
+    function decodeShareData(str) {
+      try {
+        return JSON.parse(decodeURIComponent(escape(atob(str))));
+      } catch (e) { return null; }
+    }
+
+    function generateShareUrl(tabId) {
+      syncActiveTabState();
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return '';
+      const payload = { v: 1, tabs: [tab] };
+      const encoded = encodeShareData(payload);
+      if (!encoded) return '';
+      const base = window.location.href.split('?')[0].split('#')[0];
+      return base + '?share=' + encoded;
+    }
+
+    function openShareModal(tabId, event) {
+      if (event) event.stopPropagation();
+      shareModalTabId = tabId;
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return;
+      const url = generateShareUrl(tabId);
+      document.getElementById('shareModalTitle').textContent = 'Share \u201c' + tab.name + '\u201d';
+      document.getElementById('shareModalUrl').value = url;
+      document.getElementById('shareCopyFeedback').textContent = '';
+      document.getElementById('shareModal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('shareModal').classList.add('hidden');
+      shareModalTabId = null;
+    }
+
+    function handleShareModalOverlayClick(e) {
+      if (e.target === document.getElementById('shareModal')) closeShareModal();
+    }
+
+    function copyShareLink() {
+      const urlEl = document.getElementById('shareModalUrl');
+      const feedback = document.getElementById('shareCopyFeedback');
+      urlEl.select();
+      const showCopied = () => {
+        feedback.textContent = 'Link copied to clipboard!';
+        setTimeout(() => { feedback.textContent = ''; }, 3000);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(urlEl.value).then(showCopied).catch(() => {
+          try { document.execCommand('copy'); showCopied(); } catch (_) {}
+        });
+      } else {
+        try { document.execCommand('copy'); showCopied(); } catch (_) {}
+      }
+    }
+
+    function emailShareLink() {
+      const urlEl = document.getElementById('shareModalUrl');
+      const tab = tabs.find(t => t.id === shareModalTabId);
+      const tabName = tab ? tab.name : 'Timeline';
+      const subject = encodeURIComponent('Shared Timeline: ' + tabName);
+      const body = encodeURIComponent(
+        'Here is a read-only link to the \u201c' + tabName + '\u201d timeline:\n\n' +
+        urlEl.value + '\n\nThis link opens a read-only view of the shared tab.'
+      );
+      window.open('mailto:?subject=' + subject + '&body=' + body);
+    }
+
+    function parseSharedUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const shareParam = params.get('share');
+        if (!shareParam) return null;
+        const data = decodeShareData(shareParam);
+        if (!data || !Array.isArray(data.tabs) || data.tabs.length === 0) return null;
+        return data;
+      } catch (e) { return null; }
     }
 
     function getMilestoneSub(m) {
@@ -4169,6 +4406,7 @@
     }
 
     function saveToStorage() {
+      if (isSharedView) return; // never persist a shared view into the owner's storage
       syncActiveTabState();
       try {
         localStorage.setItem('wte_tabs', JSON.stringify(tabs));
@@ -4316,18 +4554,35 @@
       const bar = document.getElementById('tabsBar');
       if (!bar) return;
 
+      if (isSharedView) {
+        // Read-only tab bar: no add/close/rename/share controls
+        bar.innerHTML = tabs.map(tab => {
+          const isActive = tab.id === activeTabId;
+          return `<div class="tab${isActive ? ' active' : ''}" data-tab-id="${tab.id}"
+                       onclick="applyTab(${tab.id})">
+            <span class="tab-name">${esc(tab.name)}</span>
+          </div>`;
+        }).join('');
+        return;
+      }
+
+      const shareIcon = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+
       const tabsHtml = tabs.map(tab => {
         const isActive = !isAdminViewActive && (tab.id === activeTabId);
         const closeBtn = tabs.length > 1
           ? `<button class="tab-close" title="Close tab"
                onclick="closeTab(${tab.id}, event)">&times;</button>`
           : '';
+        const shareBtn = isEditUnlocked
+          ? `<button class="tab-share" title="Share this tab" onclick="openShareModal(${tab.id}, event)">${shareIcon}</button>`
+          : '';
         return `<div class="tab${isActive ? ' active' : ''}" data-tab-id="${tab.id}"
                      onclick="applyTab(${tab.id})">
           <span class="tab-name"
                 ondblclick="startRenameTab(${tab.id}, event)"
                 title="Double-click to rename">${esc(tab.name)}</span>
-          ${closeBtn}
+          ${shareBtn}${closeBtn}
         </div>`;
       }).join('');
 
@@ -4341,6 +4596,23 @@
        ================================================================ */
 
     (function init() {
+      // Detect shared URL (?share=...) — if present, enter read-only shared view
+      const sharedData = parseSharedUrl();
+      if (sharedData) {
+        isSharedView = true;
+        // Assign fresh sequential IDs so internal lookups work correctly
+        tabs = sharedData.tabs.map((t, i) => Object.assign({}, t, { id: i + 1 }));
+        nextTabId = tabs.length + 1;
+        activeTabId = tabs[0].id;
+        // Show the shared view banner and hide the lock/admin buttons
+        document.getElementById('sharedViewBanner').classList.remove('hidden');
+        document.getElementById('lockBtn').style.display = 'none';
+        document.getElementById('adminHeaderBtn').style.display = 'none';
+        applyTab(activeTabId, false);
+        updateLockState();
+        return;
+      }
+
       loadAdminSettings();
       let loaded = loadFromStorage();
       if (!loaded) {
