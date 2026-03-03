@@ -3577,6 +3577,7 @@
     }
 
     function addTab() {
+      if (!isEditUnlocked) { showPasswordModal(); return; }
       syncActiveTabState();
       const tab = createTab('Website ' + (tabs.length + 1));
       tabs.push(tab);
@@ -3585,6 +3586,7 @@
 
     function closeTab(tabId, event) {
       if (event) event.stopPropagation();
+      if (!isEditUnlocked) { showPasswordModal(); return; }
       if (tabs.length <= 1) return;
       const idx = tabs.findIndex(t => t.id === tabId);
       if (idx === -1) return;
@@ -3639,6 +3641,7 @@
 
     function startRenameTab(tabId, event) {
       if (event) event.stopPropagation();
+      if (!isEditUnlocked) return;
       const tab = tabs.find(t => t.id === tabId);
       if (!tab) return;
       const nameEl = document.querySelector(`.tab[data-tab-id="${tabId}"] .tab-name`);
