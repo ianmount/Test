@@ -158,6 +158,15 @@
       padding: 24px 32px;
     }
 
+    /* ===== Site Name Heading ===== */
+    .site-name-heading {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 20px 0;
+      letter-spacing: -0.01em;
+    }
+
     /* ===== Controls Panel ===== */
     .controls-panel {
       background: var(--bg-secondary);
@@ -2113,6 +2122,8 @@
   <!-- Main -->
   <div class="main">
 
+    <h1 class="site-name-heading" id="siteNameHeading"></h1>
+
     <!-- Controls -->
     <div class="controls-panel">
       <div class="controls-row">
@@ -2199,7 +2210,7 @@
     <div class="admin-view hidden" id="adminView">
       <div class="admin-panel-header">
         <h2>Admin Settings</h2>
-        <p>Configure overrides that apply across all project tabs.</p>
+        <p>Configure duration overrides for this website.</p>
       </div>
       <div class="admin-section">
         <label class="admin-toggle-row">
@@ -3841,20 +3852,13 @@
     }
 
     function saveAdminSettings() {
-      try {
-        localStorage.setItem('wte_admin_useManual', JSON.stringify(useManualDurations));
-        localStorage.setItem('wte_admin_durations', JSON.stringify(manualDurations));
-      } catch (e) { /* storage may be unavailable */ }
+      saveToStorage();
     }
 
     function loadAdminSettings() {
-      try {
-        const storedUse = localStorage.getItem('wte_admin_useManual');
-        const storedDurations = localStorage.getItem('wte_admin_durations');
-        if (storedUse !== null) useManualDurations = JSON.parse(storedUse);
-        if (storedDurations) manualDurations = JSON.parse(storedDurations);
-      } catch (e) { /* corrupt storage — ignore */ }
-      initManualDurations();
+      // Admin settings are now stored per-tab inside each tab object.
+      // This function is kept for call-site compatibility but is a no-op;
+      // applyTab() restores the correct settings when a tab is activated.
     }
 
     function handleAdminTabClick() {
@@ -4027,7 +4031,9 @@
         includeSEO: true,
         currentView: 'timeline',
         calendarMonthISO: null,
-        completedMilestones: {}
+        completedMilestones: {},
+        useManualDurations: false,
+        manualDurations: {}
       };
     }
 
@@ -4042,6 +4048,8 @@
       tab.currentView = currentView;
       tab.calendarMonthISO = calendarMonth ? calendarMonth.toISOString() : null;
       tab.completedMilestones = Object.assign({}, completedMilestones);
+      tab.useManualDurations = useManualDurations;
+      tab.manualDurations = manualDurations;
     }
 
     function saveToStorage() {
@@ -4121,6 +4129,13 @@
       includeSEO = tab.includeSEO;
       calendarMonth = tab.calendarMonthISO ? new Date(tab.calendarMonthISO) : null;
       completedMilestones = Object.assign({}, tab.completedMilestones || {});
+      useManualDurations = tab.useManualDurations || false;
+      manualDurations = tab.manualDurations || {};
+      initManualDurations();
+
+      // Update site name heading
+      const heading = document.getElementById('siteNameHeading');
+      if (heading) heading.textContent = tab.name;
 
       // Restore UI controls
       document.getElementById('startDate').value = tab.startDate;
@@ -4161,6 +4176,10 @@
         tab.name = trimmed || tab.name;
         saveToStorage();
         renderTabs();
+        if (tab.id === activeTabId) {
+          const heading = document.getElementById('siteNameHeading');
+          if (heading) heading.textContent = tab.name;
+        }
       };
 
       input.onblur = commit;
