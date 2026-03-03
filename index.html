@@ -360,6 +360,28 @@
       color: #34d399;
     }
 
+    .overdue-list {
+      list-style: none;
+      margin: 8px 0 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px solid var(--border-primary);
+      padding-top: 6px;
+    }
+
+    .overdue-list li {
+      font-size: 0.6875rem;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    .overdue-list .overdue-phase {
+      color: #f87171;
+      font-weight: 600;
+    }
+
     .summary-card-label {
       font-size: 0.6875rem;
       color: var(--text-muted);
@@ -1803,7 +1825,7 @@
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
               { label: 'Secondary Page Development', parallelStart: true },
               { label: 'Copywriting' },
-              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
+              { label: 'SEO Copy Review', daysBeforeEnd: 2, seoOnly: true }
             ]
           },
           {
@@ -1874,7 +1896,7 @@
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
               { label: 'Secondary Page Development', parallelStart: true },
               { label: 'Copywriting' },
-              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
+              { label: 'SEO Copy Review', daysBeforeEnd: 2, seoOnly: true }
             ]
           },
           {
@@ -1947,7 +1969,7 @@
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
               { label: 'Secondary Page Development', parallelStart: true },
               { label: 'Copywriting' },
-              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
+              { label: 'SEO Copy Review', daysBeforeEnd: 2, seoOnly: true }
             ]
           },
           {
@@ -2020,7 +2042,7 @@
               { label: 'Content Doc Formatting (MC)', durationDays: 2 },
               { label: 'Secondary Page Development', parallelStart: true },
               { label: 'Copywriting' },
-              { label: 'SEO Copy Review', daysBeforeEnd: 5, seoOnly: true }
+              { label: 'SEO Copy Review', daysBeforeEnd: 2, seoOnly: true }
             ]
           },
           {
@@ -2370,7 +2392,12 @@
       const totalCalendarDays = calendarDaysBetween(projectStartDate, projectEndDate);
       const totalWeeks = Math.ceil(totalBusinessDays / 5);
       const overallComp = getOverallCompletion();
-      const overdueCount = getOverdueMilestones();
+      const overdueList = getOverdueMilestones();
+      const overdueCount = overdueList.length;
+
+      const overdueItemsHtml = overdueCount > 0
+        ? `<ul class="overdue-list">${overdueList.map(o => `<li><span class="overdue-phase">${o.phaseName}</span> \u2013 ${o.label}</li>`).join('')}</ul>`
+        : '';
 
       container.innerHTML = `
         <div class="summary-card">
@@ -2403,6 +2430,7 @@
         <div class="summary-card">
           <div class="summary-card-value ${overdueCount > 0 ? 'overdue' : 'clear'}">${overdueCount}</div>
           <div class="summary-card-label">Overdue Milestones</div>
+          ${overdueItemsHtml}
         </div>
       `;
       updateStatusBanner();
@@ -2774,7 +2802,7 @@
     function getOverdueMilestones() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      let count = 0;
+      const overdue = [];
       calculatedPhases.forEach(phase => {
         phase.milestones
           .map((m, idx) => ({ m, idx }))
@@ -2783,10 +2811,10 @@
             if (completedMilestones[`${phase.key}_${idx}`]) return;
             const deadline = new Date(!m.noDate && m.endDate ? m.endDate : phase.endDate);
             deadline.setHours(0, 0, 0, 0);
-            if (today > deadline) count++;
+            if (today > deadline) overdue.push({ phaseName: phase.shortName, label: m.label });
           });
       });
-      return count;
+      return overdue;
     }
 
     function updateStatusBanner() {
@@ -2816,7 +2844,8 @@
       }
 
       const actualPct = getOverallCompletion().pct;
-      const overdueCount = getOverdueMilestones();
+      const overdueList = getOverdueMilestones();
+      const overdueCount = overdueList.length;
       const isOnTrack = actualPct >= projectedPct && overdueCount === 0;
 
       const checkIcon = `<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
