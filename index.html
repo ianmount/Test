@@ -323,7 +323,7 @@
     /* ===== Summary Cards ===== */
     .summary-row {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       gap: 14px;
       margin-bottom: 20px;
     }
@@ -350,6 +350,14 @@
 
     .summary-card-value.highlight {
       color: var(--accent);
+    }
+
+    .summary-card-value.overdue {
+      color: #f87171;
+    }
+
+    .summary-card-value.clear {
+      color: #34d399;
     }
 
     .summary-card-label {
@@ -2362,6 +2370,7 @@
       const totalCalendarDays = calendarDaysBetween(projectStartDate, projectEndDate);
       const totalWeeks = Math.ceil(totalBusinessDays / 5);
       const overallComp = getOverallCompletion();
+      const overdueCount = getOverdueMilestones();
 
       container.innerHTML = `
         <div class="summary-card">
@@ -2390,6 +2399,10 @@
           <div class="summary-progress-bar-track">
             <div class="summary-progress-bar-fill" style="width: ${overallComp.pct}%;"></div>
           </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-value ${overdueCount > 0 ? 'overdue' : 'clear'}">${overdueCount}</div>
+          <div class="summary-card-label">Overdue Milestones</div>
         </div>
       `;
       updateStatusBanner();
@@ -2758,6 +2771,24 @@
       return { completed, total, pct: total > 0 ? Math.round((completed / total) * 100) : 0 };
     }
 
+    function getOverdueMilestones() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let count = 0;
+      calculatedPhases.forEach(phase => {
+        phase.milestones
+          .map((m, idx) => ({ m, idx }))
+          .filter(({ m }) => !m.seoOnly || includeSEO)
+          .forEach(({ m, idx }) => {
+            if (completedMilestones[`${phase.key}_${idx}`]) return;
+            const deadline = new Date(!m.noDate && m.endDate ? m.endDate : phase.endDate);
+            deadline.setHours(0, 0, 0, 0);
+            if (today > deadline) count++;
+          });
+      });
+      return count;
+    }
+
     function updateStatusBanner() {
       const banner = document.getElementById('statusBanner');
       if (!projectStartDate || !projectEndDate) {
@@ -2785,15 +2816,20 @@
       }
 
       const actualPct = getOverallCompletion().pct;
-      const isOnTrack = actualPct >= projectedPct;
+      const overdueCount = getOverdueMilestones();
+      const isOnTrack = actualPct >= projectedPct && overdueCount === 0;
 
       const checkIcon = `<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
       const warnIcon = `<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>`;
 
+      const overdueText = overdueCount > 0
+        ? ` · ${overdueCount} overdue milestone${overdueCount > 1 ? 's' : ''}`
+        : '';
+
       banner.className = `status-banner active ${isOnTrack ? 'on-track' : 'off-track'}`;
       banner.innerHTML = `
         ${isOnTrack ? checkIcon : warnIcon}
-        <span><strong>${isOnTrack ? 'On Track' : 'Off Track'}</strong> — ${actualPct}% complete · ${projectedPct}% projected</span>
+        <span><strong>${isOnTrack ? 'On Track' : 'Off Track'}</strong> — ${actualPct}% complete · ${projectedPct}% projected${overdueText}</span>
       `;
     }
 
