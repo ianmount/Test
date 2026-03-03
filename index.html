@@ -1169,6 +1169,296 @@
       transition: width 0.3s ease;
     }
 
+    /* ===== Comparison View ===== */
+    .comparison-view { display: none; }
+    .comparison-view.active { display: block; }
+
+    .comparison-header {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 20px 28px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .comparison-header-title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .comparison-overall-progress {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .comparison-overall-bar-wrap {
+      min-width: 180px;
+    }
+
+    .comparison-overall-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .comparison-overall-track {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-primary);
+    }
+
+    .comparison-overall-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .comparison-overall-pct {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .comparison-phases {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .comparison-phase-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: border-color var(--transition);
+    }
+
+    .comparison-phase-card:hover {
+      border-color: var(--border-secondary);
+    }
+
+    .comparison-phase-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 24px;
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--transition);
+    }
+
+    .comparison-phase-card-header:hover {
+      background: rgba(79, 110, 247, 0.04);
+    }
+
+    .comparison-phase-color-bar {
+      width: 4px;
+      height: 38px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .comparison-phase-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .comparison-phase-name {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .comparison-phase-projected {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .comparison-phase-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .comparison-phase-progress-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+
+    .comparison-phase-pct-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .comparison-phase-pct-value {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .comparison-phase-track {
+      width: 130px;
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border-primary);
+    }
+
+    .comparison-phase-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .comparison-status-badge {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 3px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .comparison-status-badge.not-started {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      border: 1px solid var(--border-secondary);
+    }
+
+    .comparison-status-badge.in-progress {
+      background: rgba(245, 158, 11, 0.12);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .comparison-status-badge.complete {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .comparison-phase-toggle-icon {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      transition: transform var(--transition);
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .comparison-phase-toggle-icon.open {
+      transform: rotate(180deg);
+    }
+
+    .comparison-phase-body {
+      border-top: 1px solid var(--border-primary);
+      display: none;
+      animation: slideUp 0.15s ease;
+    }
+
+    .comparison-phase-body.open {
+      display: block;
+    }
+
+    .comparison-milestones-list {
+      list-style: none;
+      padding: 8px 24px 4px;
+    }
+
+    .comparison-milestone-item {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .comparison-milestone-item:last-child {
+      border-bottom: none;
+    }
+
+    .comparison-milestone-check-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .comparison-milestone-checkbox {
+      width: 15px;
+      height: 15px;
+      margin-top: 3px;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .comparison-milestone-marker {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .comparison-milestone-text {
+      color: var(--text-primary);
+      font-weight: 500;
+      font-size: 0.8125rem;
+    }
+
+    .comparison-milestone-date {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .comparison-milestone-item.done .comparison-milestone-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .comparison-milestone-item.done .comparison-milestone-date {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .comparison-empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 900px) {
       .summary-row { grid-template-columns: repeat(3, 1fr); }
@@ -1342,6 +1632,7 @@
         <div class="view-toggle">
           <button class="view-toggle-btn active" data-view="timeline" onclick="setView('timeline')">Timeline</button>
           <button class="view-toggle-btn" data-view="calendar" onclick="setView('calendar')">Calendar</button>
+          <button class="view-toggle-btn" data-view="comparison" onclick="setView('comparison')">Comparison</button>
         </div>
         <div class="export-menu">
           <button class="btn btn-outline" onclick="toggleExport()">
@@ -1438,6 +1729,11 @@
         <div class="calendar-grid" id="calendarGrid"></div>
       </div>
       <div class="legend" id="calendarLegend" style="margin-top: 12px; background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg);"></div>
+    </div>
+
+    <!-- Comparison View -->
+    <div class="comparison-view" id="comparisonView">
+      <div id="comparisonContent"></div>
     </div>
 
     <!-- Phase Detail Panel -->
@@ -2005,6 +2301,9 @@
       renderTimeline();
       renderCalendar();
       renderLegend();
+      if (currentView === 'comparison') {
+        renderComparison();
+      }
       closeDetailPanel();
       saveToStorage();
     }
@@ -2029,6 +2328,9 @@
       includeSEO = checked;
       renderTimeline();
       renderCalendar();
+      if (currentView === 'comparison') {
+        renderComparison();
+      }
       closeDetailPanel();
       saveToStorage();
     }
@@ -2468,6 +2770,9 @@
       showPhaseDetail(phaseKey, false); // re-render panel without scrolling
       renderTimeline();
       renderSummary();
+      if (currentView === 'comparison') {
+        renderComparison();
+      }
       saveToStorage();
     }
 
@@ -2554,6 +2859,108 @@
     }
 
     /* ================================================================
+       COMPARISON VIEW
+       ================================================================ */
+
+    function renderComparison() {
+      const container = document.getElementById('comparisonContent');
+      if (!container) return;
+
+      if (calculatedPhases.length === 0) {
+        container.innerHTML = '<div class="comparison-empty">Set a start date above to generate a timeline comparison.</div>';
+        return;
+      }
+
+      const overall = getOverallCompletion();
+
+      const phasesHtml = calculatedPhases.map(phase => {
+        const comp = getPhaseCompletion(phase.key);
+        const statusClass = comp.pct === 0 ? 'not-started' : comp.pct === 100 ? 'complete' : 'in-progress';
+        const statusLabel = comp.pct === 0 ? 'Not Started' : comp.pct === 100 ? 'Complete' : 'In Progress';
+
+        const milestonesHtml = phase.milestones
+          .map((m, idx) => ({ m, idx }))
+          .filter(({ m }) => !m.seoOnly || includeSEO)
+          .map(({ m, idx }) => {
+            const key = `${phase.key}_${idx}`;
+            const isChecked = !!completedMilestones[key];
+            let dateHtml = '';
+            if (!m.noDate && m.startDate && m.endDate) {
+              dateHtml = m.singleDay
+                ? `<div class="comparison-milestone-date">${formatDate(m.startDate)}</div>`
+                : `<div class="comparison-milestone-date">${formatDate(m.startDate)} \u2013 ${formatDate(m.endDate)}</div>`;
+            }
+            return `<li class="comparison-milestone-item${isChecked ? ' done' : ''}">
+              <label class="comparison-milestone-check-label">
+                <input type="checkbox" class="comparison-milestone-checkbox"
+                       ${isChecked ? 'checked' : ''}
+                       onchange="toggleMilestone('${phase.key}', ${idx})">
+                <span class="comparison-milestone-marker" style="background: ${phase.colorHex};"></span>
+                <div>
+                  <div class="comparison-milestone-text">${esc(m.label)}</div>
+                  ${dateHtml}
+                </div>
+              </label>
+            </li>`;
+          }).join('');
+
+        return `
+          <div class="comparison-phase-card">
+            <div class="comparison-phase-card-header" onclick="toggleComparisonPhase('${phase.key}')">
+              <div class="comparison-phase-color-bar" style="background: ${phase.colorHex};"></div>
+              <div class="comparison-phase-info">
+                <div class="comparison-phase-name">${esc(phase.name)}</div>
+                <div class="comparison-phase-projected">
+                  Projected: ${formatDate(phase.startDate)} &ndash; ${formatDate(phase.endDate)} &nbsp;&middot;&nbsp; ${phase.durationLabel}
+                </div>
+              </div>
+              <div class="comparison-phase-right">
+                <div class="comparison-phase-progress-wrap">
+                  <div class="comparison-phase-pct-row">
+                    <span class="comparison-phase-pct-value" style="color: ${phase.colorHex};">${comp.pct}%</span>
+                    <span>${comp.completed} of ${comp.total} milestones</span>
+                  </div>
+                  <div class="comparison-phase-track">
+                    <div class="comparison-phase-fill" style="width: ${comp.pct}%; background: ${phase.colorHex};"></div>
+                  </div>
+                </div>
+                <span class="comparison-status-badge ${statusClass}">${statusLabel}</span>
+                <span class="comparison-phase-toggle-icon" id="cmp-toggle-${phase.key}">&#9660;</span>
+              </div>
+            </div>
+            <div class="comparison-phase-body" id="cmp-body-${phase.key}">
+              <ul class="comparison-milestones-list">${milestonesHtml}</ul>
+            </div>
+          </div>`;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="comparison-header">
+          <div class="comparison-header-title">Timeline Comparison</div>
+          <div class="comparison-overall-progress">
+            <div class="comparison-overall-bar-wrap">
+              <div class="comparison-overall-label">Overall Actual Progress</div>
+              <div class="comparison-overall-track">
+                <div class="comparison-overall-fill" style="width: ${overall.pct}%;"></div>
+              </div>
+            </div>
+            <div class="comparison-overall-pct">${overall.pct}%</div>
+          </div>
+        </div>
+        <div class="comparison-phases">${phasesHtml}</div>
+      `;
+    }
+
+    function toggleComparisonPhase(phaseKey) {
+      const body = document.getElementById(`cmp-body-${phaseKey}`);
+      const icon = document.getElementById(`cmp-toggle-${phaseKey}`);
+      if (!body || !icon) return;
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      icon.classList.toggle('open', !isOpen);
+    }
+
+    /* ================================================================
        TOOLTIP
        ================================================================ */
 
@@ -2607,9 +3014,13 @@
       });
       document.getElementById('timelineView').classList.toggle('active', view === 'timeline');
       document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
+      document.getElementById('comparisonView').classList.toggle('active', view === 'comparison');
 
       if (view === 'calendar' && calculatedPhases.length > 0) {
         renderCalendar();
+      }
+      if (view === 'comparison') {
+        renderComparison();
       }
       saveToStorage();
     }
@@ -2830,6 +3241,7 @@
       });
       document.getElementById('timelineView').classList.toggle('active', currentView === 'timeline');
       document.getElementById('calendarView').classList.toggle('active', currentView === 'calendar');
+      document.getElementById('comparisonView').classList.toggle('active', currentView === 'comparison');
 
       renderTabs();
       recalculate(); // recalculate also calls saveToStorage
