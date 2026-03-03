@@ -433,6 +433,27 @@
       color: var(--text-primary);
     }
 
+    .view-toggle-admin-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .view-toggle-admin-btn.active {
+      background: var(--bg-elevated);
+      color: #f59e0b;
+      box-shadow: var(--shadow);
+    }
+
+    .view-toggle-admin-btn.tab-locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .view-toggle-admin-btn:hover:not(.active):not(.tab-locked) {
+      color: #f59e0b;
+    }
+
     /* ===== Timeline Container ===== */
     .timeline-container {
       background: var(--bg-secondary);
@@ -2097,6 +2118,12 @@
           <button class="view-toggle-btn active" data-view="timeline" onclick="setView('timeline')">Timeline</button>
           <button class="view-toggle-btn" data-view="calendar" onclick="setView('calendar')">Calendar</button>
           <button class="view-toggle-btn" data-view="comparison" onclick="setView('comparison')">Comparison</button>
+          <button class="view-toggle-btn view-toggle-admin-btn" id="adminHeaderBtn" onclick="handleAdminTabClick()" title="Admin settings">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Admin
+          </button>
         </div>
         <button class="lock-btn" id="lockBtn" onclick="handleLockBtnClick()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -2952,6 +2979,7 @@
       }
       // Update admin tab locked/unlocked appearance
       renderTabs();
+      updateAdminHeaderBtn();
     }
 
     function getMilestoneSub(m) {
@@ -3861,6 +3889,14 @@
       // applyTab() restores the correct settings when a tab is activated.
     }
 
+    function updateAdminHeaderBtn() {
+      const btn = document.getElementById('adminHeaderBtn');
+      if (!btn) return;
+      btn.classList.toggle('active', isAdminViewActive);
+      btn.classList.toggle('tab-locked', !isEditUnlocked);
+      btn.title = !isEditUnlocked ? 'Unlock editing to access Admin settings' : 'Admin settings';
+    }
+
     function handleAdminTabClick() {
       if (!isEditUnlocked) {
         showPasswordModal();
@@ -3886,6 +3922,7 @@
         panel.classList.add('hidden');
       }
       renderTabs();
+      updateAdminHeaderBtn();
     }
 
     function hideAdminView() {
@@ -3893,6 +3930,7 @@
       document.querySelector('.main').classList.remove('admin-active');
       document.getElementById('adminView').classList.add('hidden');
       renderTabs();
+      updateAdminHeaderBtn();
     }
 
     function handleManualDurationsToggle(checked) {
@@ -4213,21 +4251,9 @@
         </div>`;
       }).join('');
 
-      const adminLocked = !isEditUnlocked;
-      const adminActive = isAdminViewActive;
-      const adminTabHtml = `<button class="tab-admin${adminActive ? ' active' : ''}${adminLocked ? ' tab-locked' : ''}"
-        onclick="handleAdminTabClick()"
-        title="${adminLocked ? 'Unlock editing to access Admin settings' : 'Admin settings'}">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-        Admin
-      </button>`;
-
       bar.innerHTML = tabsHtml
         + `<button class="tab-add" onclick="addTab()" title="Add new website tab">+</button>`
-        + `<span class="tabs-save-hint" id="tabsSaveHint">Saved</span>`
-        + adminTabHtml;
+        + `<span class="tabs-save-hint" id="tabsSaveHint">Saved</span>`;
     }
 
     /* ================================================================
