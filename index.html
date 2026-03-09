@@ -2262,6 +2262,318 @@
       color: var(--text-primary);
       border-color: var(--border-focus);
     }
+
+    /* ===== Delay Scenario Panel ===== */
+    .shift-scenario-panel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .shift-scenario-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .shift-scenario-header:hover {
+      background: var(--bg-hover);
+    }
+
+    .shift-scenario-header-icon {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .shift-scenario-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    .shift-scenario-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: rgba(79, 110, 247, 0.15);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      border-radius: 20px;
+      padding: 2px 8px;
+      letter-spacing: 0.03em;
+    }
+
+    .shift-scenario-toggle-icon {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      transition: transform var(--transition);
+      flex-shrink: 0;
+    }
+
+    .shift-scenario-toggle-icon.open {
+      transform: rotate(180deg);
+    }
+
+    .shift-scenario-body {
+      display: none;
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--border-primary);
+    }
+
+    .shift-scenario-body.open {
+      display: block;
+    }
+
+    .shift-scenario-inputs {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding-top: 16px;
+    }
+
+    .shift-scenario-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .shift-scenario-input-group label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .shift-scenario-input-group select,
+    .shift-scenario-input-group input[type="date"] {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color var(--transition);
+      font-family: inherit;
+      width: 100%;
+    }
+
+    .shift-scenario-input-group select:focus,
+    .shift-scenario-input-group input[type="date"]:focus {
+      border-color: var(--border-focus);
+    }
+
+    .shift-scenario-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      padding-bottom: 1px;
+    }
+
+    .btn-shift-apply {
+      padding: 8px 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-shift-apply:hover { background: var(--accent-hover); }
+
+    .btn-shift-clear {
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-shift-clear:hover {
+      color: var(--text-primary);
+      border-color: var(--border-focus);
+    }
+
+    .shift-impact-card {
+      margin-top: 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+    }
+
+    .shift-impact-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .shift-impact-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .shift-impact-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 110px;
+    }
+
+    .shift-impact-stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .shift-impact-stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .shift-impact-stat-value.impact-danger { color: #f87171; }
+    .shift-impact-stat-value.impact-warning { color: #fbbf24; }
+    .shift-impact-stat-value.impact-safe { color: #34d399; }
+
+    .shift-impact-alert {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 500;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      line-height: 1.5;
+    }
+
+    .shift-impact-alert.impact-safe {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+    }
+
+    .shift-impact-phase-table {
+      margin-top: 16px;
+      border-top: 1px solid var(--border-primary);
+      padding-top: 14px;
+    }
+
+    .shift-impact-phase-table-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .shift-impact-phase-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.78rem;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .shift-impact-phase-item:last-child { border-bottom: none; }
+
+    .shift-impact-phase-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .shift-impact-phase-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 0 0 160px;
+    }
+
+    .shift-impact-phase-orig {
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .shift-impact-phase-arrow {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .shift-impact-phase-new {
+      color: #fbbf24;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    /* Ghost bars in Gantt chart */
+    .gantt-bar-ghost {
+      position: absolute;
+      height: 8px;
+      border-radius: 3px;
+      border: 1.5px dashed;
+      background: transparent;
+      pointer-events: none;
+      z-index: 1;
+      bottom: 8px;
+      opacity: 0.65;
+    }
+
+    .gantt-bar-ghost.phase-1 { border-color: var(--phase-1); }
+    .gantt-bar-ghost.phase-2 { border-color: var(--phase-2); }
+    .gantt-bar-ghost.phase-3 { border-color: var(--phase-3); }
+    .gantt-bar-ghost.phase-4 { border-color: var(--phase-4); }
+    .gantt-bar-ghost.phase-5 { border-color: var(--phase-5); }
+
+    .gantt-ghost-launch-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #f87171;
+      opacity: 0.75;
+      z-index: 4;
+      border-radius: 1px;
+    }
+
+    .gantt-ghost-launch-label {
+      position: absolute;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 3px;
+      color: #f87171;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      white-space: nowrap;
+      z-index: 5;
+      transform: translateX(-50%);
+      bottom: 14px;
+    }
   </style>
 </head>
 <body>
@@ -2370,6 +2682,37 @@
 
     <!-- Summary Cards -->
     <div class="summary-row" id="summaryRow"></div>
+
+    <!-- Delay Scenario Panel -->
+    <div class="shift-scenario-panel" id="shiftScenarioPanel">
+      <div class="shift-scenario-header" onclick="toggleShiftPanel()">
+        <svg class="shift-scenario-header-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="shift-scenario-title">What-If: Delay Scenario</span>
+        <span class="shift-scenario-badge">Prediction</span>
+        <span class="shift-scenario-toggle-icon" id="shiftScenarioToggleIcon">&#9660;</span>
+      </div>
+      <div class="shift-scenario-body" id="shiftScenarioBody">
+        <div class="shift-scenario-inputs">
+          <div class="shift-scenario-input-group">
+            <label for="shiftPhaseSelect">If this phase ends late&hellip;</label>
+            <select id="shiftPhaseSelect" onchange="onShiftPhaseChange()">
+              <option value="">— Select a phase —</option>
+            </select>
+          </div>
+          <div class="shift-scenario-input-group">
+            <label for="shiftNewEndDate">New expected end date</label>
+            <input type="date" id="shiftNewEndDate">
+          </div>
+          <div class="shift-scenario-actions">
+            <button class="btn-shift-apply" onclick="applyShiftScenario()">Calculate Impact</button>
+            <button class="btn-shift-clear" onclick="clearShiftScenario()">Clear</button>
+          </div>
+        </div>
+        <div id="shiftImpactCard"></div>
+      </div>
+    </div>
 
     <!-- Timeline View -->
     <div class="timeline-view active" id="timelineView">
@@ -2826,6 +3169,10 @@
     // Keys are "${phaseKey}_${milestoneIndex}", values are true
     let completedMilestones = {};
 
+    // Delay Scenario state
+    let shiftScenario = null; // { phaseKey, newEndDate }
+    let shiftedPhases = [];   // computed alternate phases when scenario is active
+
     // Admin state
     let isAdminViewActive = false;
     let isSharedView = false;     // true when loaded from a ?share= URL
@@ -3013,6 +3360,207 @@
       });
     }
 
+    /* ================================================================
+       DELAY SCENARIO / TIMELINE SHIFT PREDICTION
+       ================================================================ */
+
+    function toggleShiftPanel() {
+      const body = document.getElementById('shiftScenarioBody');
+      const icon = document.getElementById('shiftScenarioToggleIcon');
+      if (!body || !icon) return;
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      icon.classList.toggle('open', !isOpen);
+    }
+
+    function populateShiftPhaseSelector() {
+      const select = document.getElementById('shiftPhaseSelect');
+      if (!select) return;
+      const prev = select.value;
+      select.innerHTML = '<option value="">— Select a phase —</option>'
+        + calculatedPhases.map(p =>
+            `<option value="${p.key}">${esc(p.name)} (ends ${formatDateShort(p.endDate)})</option>`
+          ).join('');
+      // Restore selection if still valid
+      if (prev && calculatedPhases.some(p => p.key === prev)) {
+        select.value = prev;
+      }
+    }
+
+    function onShiftPhaseChange() {
+      const phaseKey = document.getElementById('shiftPhaseSelect').value;
+      const phase = calculatedPhases.find(p => p.key === phaseKey);
+      const dateInput = document.getElementById('shiftNewEndDate');
+      if (phase && dateInput) {
+        const d = phase.endDate;
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        dateInput.value = iso;
+      }
+      // Clear any previous impact result when phase changes
+      document.getElementById('shiftImpactCard').innerHTML = '';
+      shiftScenario = null;
+      shiftedPhases = [];
+      renderTimeline();
+    }
+
+    /**
+     * Compute an alternate timeline assuming a specific phase ends on a new date.
+     * All subsequent phases are pushed forward (or backward) by the same business-day delta.
+     * Returns an array of phase objects with updated startDate / endDate.
+     */
+    function computeShiftedTimeline(phaseKey, newPhaseEndDate) {
+      const phaseIdx = calculatedPhases.findIndex(p => p.key === phaseKey);
+      if (phaseIdx === -1) return [];
+
+      const originalPhase = calculatedPhases[phaseIdx];
+      const origEnd = originalPhase.endDate;
+
+      // Business day delta (positive = late, negative = early)
+      let bizDayDelta;
+      if (newPhaseEndDate >= origEnd) {
+        bizDayDelta = countBusinessDays(origEnd, newPhaseEndDate);
+      } else {
+        bizDayDelta = -countBusinessDays(newPhaseEndDate, origEnd);
+      }
+
+      if (bizDayDelta === 0) return [];
+
+      const shifted = calculatedPhases.map((phase, idx) => {
+        if (idx < phaseIdx) {
+          // Phases before the delayed one: unchanged
+          return { ...phase };
+        } else if (idx === phaseIdx) {
+          // The delayed phase: new end date, same start
+          return { ...phase, endDate: new Date(newPhaseEndDate) };
+        } else {
+          // Subsequent phases: recalculate from the previous shifted phase's end
+          const prevEnd = shifted[idx - 1].endDate;
+          let newStart = new Date(prevEnd);
+          newStart.setDate(newStart.getDate() + 1);
+          while (isWeekend(newStart)) newStart.setDate(newStart.getDate() + 1);
+          const newEnd = addBusinessDays(newStart, phase.businessDays);
+          return { ...phase, startDate: new Date(newStart), endDate: new Date(newEnd) };
+        }
+      });
+
+      return shifted;
+    }
+
+    function applyShiftScenario() {
+      const phaseKey = document.getElementById('shiftPhaseSelect').value;
+      const dateVal = document.getElementById('shiftNewEndDate').value;
+      if (!phaseKey || !dateVal) return;
+
+      let newEndDate = new Date(dateVal + 'T00:00:00');
+      // Snap to next business day if weekend
+      while (isWeekend(newEndDate)) newEndDate.setDate(newEndDate.getDate() + 1);
+
+      shiftScenario = { phaseKey, newEndDate };
+      shiftedPhases = computeShiftedTimeline(phaseKey, newEndDate);
+      renderShiftImpact();
+      renderTimeline();
+    }
+
+    function clearShiftScenario() {
+      shiftScenario = null;
+      shiftedPhases = [];
+      document.getElementById('shiftImpactCard').innerHTML = '';
+      renderTimeline();
+    }
+
+    function renderShiftImpact() {
+      const card = document.getElementById('shiftImpactCard');
+      if (!card) return;
+
+      if (!shiftScenario || shiftedPhases.length === 0) {
+        card.innerHTML = '';
+        return;
+      }
+
+      const originalEnd = projectEndDate;
+      const newEnd = shiftedPhases[shiftedPhases.length - 1].endDate;
+
+      let bizDays, sign;
+      if (newEnd > originalEnd) {
+        bizDays = countBusinessDays(originalEnd, newEnd);
+        sign = '+';
+      } else if (newEnd < originalEnd) {
+        bizDays = countBusinessDays(newEnd, originalEnd);
+        sign = '-';
+      } else {
+        bizDays = 0;
+        sign = '';
+      }
+
+      const calDays = Math.abs(calendarDaysBetween(originalEnd, newEnd));
+      const weeks = (bizDays / 5).toFixed(1);
+      const isLate = newEnd > originalEnd;
+      const isEarly = newEnd < originalEnd;
+      const isUnchanged = bizDays === 0;
+
+      const severityClass = isUnchanged ? '' : !isLate ? 'impact-safe' : bizDays <= 5 ? 'impact-warning' : 'impact-danger';
+
+      let alertText;
+      if (isUnchanged) {
+        alertText = '&#10003; This delay has no effect on the final launch date.';
+      } else if (isEarly) {
+        alertText = `&#10003; The project would finish ${bizDays} business day${bizDays !== 1 ? 's' : ''} (${calDays} calendar day${calDays !== 1 ? 's' : ''}) <strong>earlier</strong> than the original launch date.`;
+      } else {
+        alertText = `&#9888; The project would launch <strong>${sign}${bizDays} business day${bizDays !== 1 ? 's' : ''}</strong> (${sign}${calDays} calendar day${calDays !== 1 ? 's' : ''}) past the contractual launch date of <strong>${formatDate(originalEnd)}</strong>.`;
+      }
+
+      const alertClass = !isLate ? 'impact-safe' : '';
+
+      // Build per-phase breakdown for phases that shift
+      const phaseIdx = calculatedPhases.findIndex(p => p.key === shiftScenario.phaseKey);
+      const phaseRowsHtml = shiftedPhases
+        .filter((_, idx) => idx >= phaseIdx)
+        .map((shiftedPhase, relIdx) => {
+          const origPhase = calculatedPhases.find(p => p.key === shiftedPhase.key);
+          if (!origPhase) return '';
+          return `<div class="shift-impact-phase-item">
+            <div class="shift-impact-phase-dot" style="background:${origPhase.colorHex};"></div>
+            <div class="shift-impact-phase-name">${esc(origPhase.shortName)}</div>
+            <div class="shift-impact-phase-orig">${formatDateShort(origPhase.startDate)} &ndash; ${formatDateShort(origPhase.endDate)}</div>
+            <div class="shift-impact-phase-arrow">&rarr;</div>
+            <div class="shift-impact-phase-new">${formatDateShort(shiftedPhase.startDate)} &ndash; ${formatDateShort(shiftedPhase.endDate)}</div>
+          </div>`;
+        }).join('');
+
+      card.innerHTML = `
+        <div class="shift-impact-card">
+          <div class="shift-impact-title">Projected Impact</div>
+          <div class="shift-impact-row">
+            <div class="shift-impact-stat">
+              <div class="shift-impact-stat-label">Original Launch</div>
+              <div class="shift-impact-stat-value">${formatDate(originalEnd)}</div>
+            </div>
+            <div class="shift-impact-stat">
+              <div class="shift-impact-stat-label">Shifted Launch</div>
+              <div class="shift-impact-stat-value ${severityClass}">${formatDate(newEnd)}</div>
+            </div>
+            <div class="shift-impact-stat">
+              <div class="shift-impact-stat-label">Business Days</div>
+              <div class="shift-impact-stat-value ${severityClass}">${sign}${bizDays} day${bizDays !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="shift-impact-stat">
+              <div class="shift-impact-stat-label">Calendar Days</div>
+              <div class="shift-impact-stat-value ${severityClass}">${sign}${calDays} day${calDays !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="shift-impact-stat">
+              <div class="shift-impact-stat-label">Weeks Shifted</div>
+              <div class="shift-impact-stat-value ${severityClass}">${sign}${weeks} wk${weeks !== '1.0' ? 's' : ''}</div>
+            </div>
+          </div>
+          <div class="shift-impact-alert ${alertClass}">${alertText}</div>
+          ${phaseRowsHtml ? `<div class="shift-impact-phase-table">
+            <div class="shift-impact-phase-table-title">Affected Phase Dates</div>
+            ${phaseRowsHtml}
+          </div>` : ''}
+        </div>
+      `;
+    }
+
     function recalculate() {
       const startDateInput = document.getElementById('startDate').value;
 
@@ -3073,6 +3621,22 @@
 
       // Update mode label
       document.getElementById('timelineModeLabel').textContent = getCurrentConfig().label;
+
+      // Sync / invalidate shift scenario when timeline changes
+      populateShiftPhaseSelector();
+      if (shiftScenario) {
+        const stillValid = calculatedPhases.some(p => p.key === shiftScenario.phaseKey);
+        if (stillValid) {
+          // Recompute the shifted timeline with the updated base phases
+          shiftedPhases = computeShiftedTimeline(shiftScenario.phaseKey, shiftScenario.newEndDate);
+          renderShiftImpact();
+        } else {
+          // Phase no longer exists — clear the scenario
+          shiftScenario = null;
+          shiftedPhases = [];
+          document.getElementById('shiftImpactCard').innerHTML = '';
+        }
+      }
 
       renderSummary();
       renderTimeline();
@@ -3383,8 +3947,13 @@
         return;
       }
 
+      // Extend timeline end to accommodate shifted launch if scenario is active
+      const effectiveEndDate = (shiftedPhases.length > 0 && shiftedPhases[shiftedPhases.length - 1].endDate > projectEndDate)
+        ? shiftedPhases[shiftedPhases.length - 1].endDate
+        : projectEndDate;
+
       const timelineStart = getWeekStart(projectStartDate);
-      const timelineEndPadded = new Date(projectEndDate);
+      const timelineEndPadded = new Date(effectiveEndDate);
       timelineEndPadded.setDate(timelineEndPadded.getDate() + 7);
       const timelineEnd = getWeekStart(timelineEndPadded);
 
@@ -3419,8 +3988,17 @@
         todayMarker = `<div class="gantt-today" style="left: ${todayPct}%"></div>`;
       }
 
+      // Build a lookup of shifted phases by key for ghost bar rendering
+      const shiftedByKey = {};
+      shiftedPhases.forEach(p => { shiftedByKey[p.key] = p; });
+
+      // Shifted launch marker (only on the last row of the Gantt)
+      const shiftedLaunchDate = shiftedPhases.length > 0
+        ? shiftedPhases[shiftedPhases.length - 1].endDate
+        : null;
+
       // Rows
-      const rows = calculatedPhases.map(phase => {
+      const rows = calculatedPhases.map((phase, idx) => {
         const barStart = ((phase.startDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
         const barEnd = ((phase.endDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
         const barWidth = Math.max(barEnd - barStart, 1.5);
@@ -3437,15 +4015,48 @@
           ? `<span class="gantt-completion-badge">${comp.completed}/${comp.total}</span>`
           : '';
 
+        // Ghost bar for shifted scenario
+        let ghostBar = '';
+        const shifted = shiftedByKey[phase.key];
+        if (shifted) {
+          const gStart = ((shifted.startDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+          const gEnd = ((shifted.endDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+          const gWidth = Math.max(gEnd - gStart, 1.5);
+          // Only render ghost if dates actually changed
+          if (Math.abs(gStart - barStart) > 0.05 || Math.abs(gWidth - barWidth) > 0.05) {
+            ghostBar = `<div class="gantt-bar-ghost ${phase.cssClass}"
+              style="left: ${gStart}%; width: ${gWidth}%;"
+              title="Shifted: ${formatDateShort(shifted.startDate)} \u2013 ${formatDateShort(shifted.endDate)}"></div>`;
+          }
+        }
+
+        // Shifted launch marker on the last row only
+        let shiftedLaunchMarker = '';
+        if (idx === calculatedPhases.length - 1 && shiftedLaunchDate && shiftedLaunchDate > projectEndDate) {
+          const markerPct = ((shiftedLaunchDate.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+          shiftedLaunchMarker = `
+            <div class="gantt-ghost-launch-marker" style="left: ${markerPct}%"></div>
+            <div class="gantt-ghost-launch-label" style="left: ${markerPct}%">Shifted Launch</div>`;
+        }
+
+        // Show shifted dates in label if this phase changes
+        const shiftedDatesLabel = shifted && (
+          shifted.startDate.getTime() !== phase.startDate.getTime() ||
+          shifted.endDate.getTime() !== phase.endDate.getTime()
+        ) ? `<div class="phase-dates" style="color:#fbbf24;">${formatDateShort(shifted.startDate)} \u2013 ${formatDateShort(shifted.endDate)}</div>` : '';
+
         return `<div class="gantt-row">
           <div class="gantt-row-label">
             <div class="phase-name">${phase.name}</div>
             <div class="phase-dates">${formatDateShort(phase.startDate)} \u2013 ${formatDateShort(phase.endDate)}</div>
+            ${shiftedDatesLabel}
             <div class="phase-duration">${phase.durationLabel}</div>
           </div>
           <div class="gantt-row-timeline">
             <div class="gantt-grid-lines">${gridLines}</div>
             ${todayMarker}
+            ${ghostBar}
+            ${shiftedLaunchMarker}
             <div class="gantt-bar ${phase.cssClass}"
                  style="left: ${barStart}%; width: ${barWidth}%;"
                  data-phase-key="${phase.key}"
