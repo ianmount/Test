@@ -3425,21 +3425,20 @@
 
       if (bizDayDelta === 0) return [];
 
-      const shifted = calculatedPhases.map((phase, idx) => {
+      // Build incrementally so each entry can reference the previous one
+      const shifted = [];
+      calculatedPhases.forEach((phase, idx) => {
         if (idx < phaseIdx) {
-          // Phases before the delayed one: unchanged
-          return { ...phase };
+          shifted.push({ ...phase });
         } else if (idx === phaseIdx) {
-          // The delayed phase: new end date, same start
-          return { ...phase, endDate: new Date(newPhaseEndDate) };
+          shifted.push({ ...phase, endDate: new Date(newPhaseEndDate) });
         } else {
-          // Subsequent phases: recalculate from the previous shifted phase's end
           const prevEnd = shifted[idx - 1].endDate;
           let newStart = new Date(prevEnd);
           newStart.setDate(newStart.getDate() + 1);
           while (isWeekend(newStart)) newStart.setDate(newStart.getDate() + 1);
           const newEnd = addBusinessDays(newStart, phase.businessDays);
-          return { ...phase, startDate: new Date(newStart), endDate: new Date(newEnd) };
+          shifted.push({ ...phase, startDate: new Date(newStart), endDate: new Date(newEnd) });
         }
       });
 
