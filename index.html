@@ -4526,8 +4526,9 @@
               const end = new Date(phase.endDate);
               end.setHours(0,0,0,0);
               if (today > end) return 'Complete';
-              const diff = Math.round((end - today) / 86400000);
-              return diff === 0 ? 'Today' : diff + ' day' + (diff !== 1 ? 's' : '');
+              if (today.getTime() === end.getTime()) return 'Today';
+              const diff = countBusinessDays(today, end);
+              return diff + ' biz day' + (diff !== 1 ? 's' : '');
             })()}</span>
           </div>
         </div>
