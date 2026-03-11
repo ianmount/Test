@@ -2267,6 +2267,100 @@
       border-color: var(--border-focus);
     }
 
+    /* ===== Live Share Badge ===== */
+    .share-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #34d399;
+      margin-bottom: 6px;
+    }
+
+    .share-live-badge.hidden {
+      display: none;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #34d399;
+      flex-shrink: 0;
+      animation: livePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .btn-share-push {
+      padding: 8px 18px;
+      background: transparent;
+      border: 1px solid #34d399;
+      border-radius: var(--radius);
+      color: #34d399;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      flex: 1;
+    }
+
+    .btn-share-push:hover {
+      background: rgba(52, 211, 153, 0.1);
+    }
+
+    /* ===== Room Loading Overlay ===== */
+    .room-loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 9999;
+    }
+
+    .room-loading-overlay.hidden {
+      display: none;
+    }
+
+    .room-loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border-primary);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .room-loading-msg {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .room-error-msg {
+      font-size: 0.9rem;
+      color: #f87171;
+      text-align: center;
+      max-width: 340px;
+    }
+
+    .room-error-msg.hidden {
+      display: none;
+    }
+
     /* ===== Delay Scenario Panel ===== */
     .shift-scenario-panel {
       background: var(--bg-secondary);
@@ -2622,6 +2716,16 @@
     </div>
   </div>
 
+  <!-- Room Loading Overlay (shown while fetching a ?room= live link) -->
+  <div class="room-loading-overlay hidden" id="roomLoadingOverlay">
+    <div class="room-loading-spinner"></div>
+    <div class="room-loading-msg" id="roomLoadingMsg">Loading shared timeline&hellip;</div>
+    <div class="room-error-msg hidden" id="roomErrorMsg">
+      This link could not be loaded. It may have expired or the room ID is invalid.<br><br>
+      Please ask the sender for an updated link.
+    </div>
+  </div>
+
   <!-- Shared View Banner -->
   <div class="shared-view-banner hidden" id="sharedViewBanner">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -2806,11 +2910,15 @@
   <div class="modal-overlay hidden" id="shareModal" onclick="handleShareModalOverlayClick(event)">
     <div class="modal-box share-modal-box">
       <div class="modal-title" id="shareModalTitle">Share Tab</div>
-      <div class="modal-subtitle">Send this link to share a read-only view of this tab. Recipients will only see this tab and cannot edit anything.</div>
+      <div class="share-live-badge hidden" id="shareLiveBadge">
+        <span class="live-dot"></span> Live link
+      </div>
+      <div class="modal-subtitle" id="shareModalSubtitle"></div>
       <textarea class="share-modal-url" id="shareModalUrl" readonly onclick="this.select()"></textarea>
       <div class="share-copy-feedback" id="shareCopyFeedback"></div>
-      <div class="share-modal-actions">
+      <div class="share-modal-actions" id="shareModalActions">
         <button class="btn-share-copy" onclick="copyShareLink()">Copy Link</button>
+        <button class="btn-share-push" id="sharePushBtn" onclick="pushShareLink()">Push Latest Changes</button>
         <button class="btn-share-email" onclick="emailShareLink()">Send via Email</button>
         <button class="btn-modal-cancel" onclick="closeShareModal()">Close</button>
       </div>
@@ -3797,7 +3905,10 @@
 
     function decodeShareData(str) {
       try {
-        return JSON.parse(decodeURIComponent(escape(atob(str))));
+        // Restore any spaces that URLSearchParams may have introduced by treating
+        // Base64 '+' characters as spaces (legacy links generated without encodeURIComponent).
+        const sanitized = str.replace(/ /g, '+');
+        return JSON.parse(decodeURIComponent(escape(atob(sanitized))));
       } catch (e) { return null; }
     }
 
@@ -3809,7 +3920,56 @@
       const encoded = encodeShareData(payload);
       if (!encoded) return '';
       const base = window.location.href.split('?')[0].split('#')[0];
-      return base + '?share=' + encoded;
+      return base + '?share=' + encodeURIComponent(encoded);
+    }
+
+    function getLiveRoomUrl(roomId) {
+      const base = window.location.href.split('?')[0].split('#')[0];
+      return base + '?room=' + roomId;
+    }
+
+    /** Save the current tab state to Vercel KV. Returns the roomId, or null on failure. */
+    async function saveToRoom(tab) {
+      syncActiveTabState();
+      const payload = { v: 1, tabs: [tab] };
+      try {
+        const resp = await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId: tab.roomId || undefined, data: payload }),
+        });
+        if (!resp.ok) return null;
+        const { roomId } = await resp.json();
+        if (!roomId) return null;
+        tab.roomId = roomId;
+        saveToStorage();
+        return roomId;
+      } catch {
+        return null;
+      }
+    }
+
+    function _setShareModalLoading(isLoading) {
+      const urlEl = document.getElementById('shareModalUrl');
+      const actions = document.getElementById('shareModalActions');
+      if (isLoading) {
+        urlEl.value = 'Creating live link\u2026';
+        urlEl.style.color = 'var(--text-muted)';
+        actions.style.opacity = '0.4';
+        actions.style.pointerEvents = 'none';
+      } else {
+        urlEl.style.color = '';
+        actions.style.opacity = '';
+        actions.style.pointerEvents = '';
+      }
+    }
+
+    function _setShareModalLive(url) {
+      document.getElementById('shareModalUrl').value = url;
+      document.getElementById('shareLiveBadge').classList.remove('hidden');
+      document.getElementById('shareModalSubtitle').innerHTML =
+        'Anyone with this link always sees your <strong>latest pushed changes</strong>. ' +
+        'Click <strong>Push Latest Changes</strong> after editing to update what they see.';
     }
 
     function openShareModal(tabId, event) {
@@ -3817,11 +3977,56 @@
       shareModalTabId = tabId;
       const tab = tabs.find(t => t.id === tabId);
       if (!tab) return;
-      const url = generateShareUrl(tabId);
+
+      // Reset modal state
       document.getElementById('shareModalTitle').textContent = 'Share \u201c' + tab.name + '\u201d';
-      document.getElementById('shareModalUrl').value = url;
+      document.getElementById('shareLiveBadge').classList.add('hidden');
       document.getElementById('shareCopyFeedback').textContent = '';
       document.getElementById('shareModal').classList.remove('hidden');
+
+      if (tab.roomId) {
+        // Already has a live link — show it immediately
+        _setShareModalLive(getLiveRoomUrl(tab.roomId));
+      } else {
+        // First share: auto-create a live link
+        _setShareModalLoading(true);
+        document.getElementById('shareModalSubtitle').textContent = 'Creating live link\u2026';
+        saveToRoom(tab).then(roomId => {
+          _setShareModalLoading(false);
+          if (roomId) {
+            _setShareModalLive(getLiveRoomUrl(roomId));
+          } else {
+            // API unavailable — fall back to snapshot URL
+            document.getElementById('shareModalUrl').value = generateShareUrl(tabId);
+            document.getElementById('shareLiveBadge').classList.add('hidden');
+            document.getElementById('shareModalSubtitle').innerHTML =
+              'Live links are unavailable (Vercel KV may not be set up). ' +
+              'Sharing a <strong>snapshot</strong> instead — reshare after changes.';
+            document.getElementById('sharePushBtn').style.display = 'none';
+          }
+        });
+      }
+    }
+
+    /** Push the latest tab state to its live room so recipients see the update. */
+    async function pushShareLink() {
+      if (!shareModalTabId) return;
+      const tab = tabs.find(t => t.id === shareModalTabId);
+      if (!tab) return;
+      const btn = document.getElementById('sharePushBtn');
+      const feedback = document.getElementById('shareCopyFeedback');
+      btn.disabled = true;
+      btn.textContent = 'Pushing\u2026';
+      const roomId = await saveToRoom(tab);
+      btn.disabled = false;
+      btn.textContent = 'Push Latest Changes';
+      if (roomId) {
+        document.getElementById('shareModalUrl').value = getLiveRoomUrl(roomId);
+        feedback.textContent = '\u2713 Recipients will now see your latest changes.';
+      } else {
+        feedback.textContent = 'Push failed — check your connection and try again.';
+      }
+      setTimeout(() => { feedback.textContent = ''; }, 4000);
     }
 
     function closeShareModal() {
@@ -5073,7 +5278,8 @@
         useManualDurations: false,
         manualDurations: {},
         asanaProjectLink: '',
-        stagingSiteLink: ''
+        stagingSiteLink: '',
+        roomId: null
       };
     }
 
@@ -5286,24 +5492,50 @@
        INITIALIZATION
        ================================================================ */
 
+    function _enterSharedView(sharedTabs) {
+      isSharedView = true;
+      tabs = sharedTabs.map((t, i) => Object.assign({}, t, { id: i + 1 }));
+      nextTabId = tabs.length + 1;
+      activeTabId = tabs[0].id;
+      document.getElementById('sharedViewBanner').classList.remove('hidden');
+      document.getElementById('lockBtn').style.display = 'none';
+      document.getElementById('adminHeaderBtn').style.display = 'none';
+      applyTab(activeTabId, false);
+      updateLockState();
+    }
+
     (function init() {
-      // Detect shared URL (?share=...) — if present, enter read-only shared view
-      const sharedData = parseSharedUrl();
-      if (sharedData) {
-        isSharedView = true;
-        // Assign fresh sequential IDs so internal lookups work correctly
-        tabs = sharedData.tabs.map((t, i) => Object.assign({}, t, { id: i + 1 }));
-        nextTabId = tabs.length + 1;
-        activeTabId = tabs[0].id;
-        // Show the shared view banner and hide the lock/admin buttons
-        document.getElementById('sharedViewBanner').classList.remove('hidden');
-        document.getElementById('lockBtn').style.display = 'none';
-        document.getElementById('adminHeaderBtn').style.display = 'none';
-        applyTab(activeTabId, false);
-        updateLockState();
+      const params = new URLSearchParams(window.location.search);
+
+      // ── Live link (?room=...) ────────────────────────────────────────────
+      const roomParam = params.get('room');
+      if (roomParam && /^[a-z0-9]{6,12}$/.test(roomParam)) {
+        const overlay = document.getElementById('roomLoadingOverlay');
+        overlay.classList.remove('hidden');
+        fetch('/api/load?room=' + encodeURIComponent(roomParam))
+          .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+          .then(function(json) {
+            if (!json.data || !Array.isArray(json.data.tabs) || !json.data.tabs.length) {
+              throw new Error('empty');
+            }
+            overlay.classList.add('hidden');
+            _enterSharedView(json.data.tabs);
+          })
+          .catch(function() {
+            document.getElementById('roomLoadingMsg').textContent = '';
+            document.getElementById('roomErrorMsg').classList.remove('hidden');
+          });
         return;
       }
 
+      // ── Snapshot link (?share=...) ───────────────────────────────────────
+      const sharedData = parseSharedUrl();
+      if (sharedData) {
+        _enterSharedView(sharedData.tabs);
+        return;
+      }
+
+      // ── Normal load ──────────────────────────────────────────────────────
       loadAdminSettings();
       let loaded = loadFromStorage();
       if (!loaded) {
@@ -5312,9 +5544,7 @@
         tabs.push(tab);
         activeTabId = tab.id;
       }
-      // applyTab bootstraps all state, renders tabs, and calls recalculate
       applyTab(activeTabId, false);
-      // Apply locked state on startup (editing is locked by default)
       updateLockState();
     })();
   </script>
