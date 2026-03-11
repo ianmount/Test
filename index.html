@@ -2702,6 +2702,10 @@
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           Edit
         </button>
+        <button class="btn btn-outline" id="shareDashboardBtn" onclick="openDashboardShareModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
         <div class="export-menu">
           <button class="btn btn-outline" onclick="toggleExport()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -3289,6 +3293,8 @@
     let isAdminViewActive = false;
     let isSharedView = false;     // true when loaded from a ?share= URL
     let shareModalTabId = null;   // tab id currently shown in share modal
+    let dashboardShareMode = false; // true when share modal is showing all tabs
+    let dashboardRoomId = null;   // live room id for the whole dashboard
     let useManualDurations = false;
     // manualDurations[configKey][phaseKey] = { phaseDays, milestones: {idx: days}, milestoneDaysBeforeEnd: {idx: days} }
     let manualDurations = {};
@@ -3949,6 +3955,71 @@
       }
     }
 
+    /** Save all tabs to Vercel KV. Returns the roomId, or null on failure. */
+    async function saveDashboardToRoom() {
+      syncActiveTabState();
+      const payload = { v: 1, tabs: tabs };
+      try {
+        const resp = await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId: dashboardRoomId || undefined, data: payload }),
+        });
+        if (!resp.ok) return null;
+        const { roomId } = await resp.json();
+        if (!roomId) return null;
+        dashboardRoomId = roomId;
+        return roomId;
+      } catch {
+        return null;
+      }
+    }
+
+    function openDashboardShareModal() {
+      dashboardShareMode = true;
+      shareModalTabId = null;
+      const tabCount = tabs.length;
+      const label = tabCount === 1 ? '1 tab' : tabCount + ' tabs';
+
+      document.getElementById('shareModalTitle').textContent = 'Share Dashboard';
+      document.getElementById('shareLiveBadge').classList.add('hidden');
+      document.getElementById('shareCopyFeedback').textContent = '';
+      document.getElementById('sharePushBtn').style.display = '';
+      document.getElementById('shareModal').classList.remove('hidden');
+
+      if (dashboardRoomId) {
+        _setShareModalLive(getLiveRoomUrl(dashboardRoomId));
+        document.getElementById('shareModalSubtitle').innerHTML =
+          'Sharing all <strong>' + label + '</strong>. Anyone with this link always sees your <strong>latest pushed changes</strong>. ' +
+          'Click <strong>Push Latest Changes</strong> after editing to update what they see.';
+      } else {
+        _setShareModalLoading(true);
+        document.getElementById('shareModalSubtitle').textContent = 'Creating live link\u2026';
+        saveDashboardToRoom().then(roomId => {
+          _setShareModalLoading(false);
+          if (roomId) {
+            _setShareModalLive(getLiveRoomUrl(roomId));
+            document.getElementById('shareModalSubtitle').innerHTML =
+              'Sharing all <strong>' + label + '</strong>. Anyone with this link always sees your <strong>latest pushed changes</strong>. ' +
+              'Click <strong>Push Latest Changes</strong> after editing to update what they see.';
+          } else {
+            // Fallback: encode all tabs into a snapshot URL
+            syncActiveTabState();
+            const encoded = encodeShareData({ v: 1, tabs: tabs });
+            const base = window.location.href.split('?')[0].split('#')[0];
+            document.getElementById('shareModalUrl').value = encoded
+              ? base + '?share=' + encodeURIComponent(encoded)
+              : '(too large to share as snapshot)';
+            document.getElementById('shareLiveBadge').classList.add('hidden');
+            document.getElementById('shareModalSubtitle').innerHTML =
+              'Live links are unavailable (Vercel KV may not be set up). ' +
+              'Sharing a <strong>snapshot</strong> instead — reshare after changes.';
+            document.getElementById('sharePushBtn').style.display = 'none';
+          }
+        });
+      }
+    }
+
     function _setShareModalLoading(isLoading) {
       const urlEl = document.getElementById('shareModalUrl');
       const actions = document.getElementById('shareModalActions');
@@ -4010,14 +4081,14 @@
 
     /** Push the latest tab state to its live room so recipients see the update. */
     async function pushShareLink() {
-      if (!shareModalTabId) return;
-      const tab = tabs.find(t => t.id === shareModalTabId);
-      if (!tab) return;
+      if (!dashboardShareMode && !shareModalTabId) return;
       const btn = document.getElementById('sharePushBtn');
       const feedback = document.getElementById('shareCopyFeedback');
       btn.disabled = true;
       btn.textContent = 'Pushing\u2026';
-      const roomId = await saveToRoom(tab);
+      const roomId = dashboardShareMode
+        ? await saveDashboardToRoom()
+        : await saveToRoom(tabs.find(t => t.id === shareModalTabId));
       btn.disabled = false;
       btn.textContent = 'Push Latest Changes';
       if (roomId) {
@@ -4032,6 +4103,7 @@
     function closeShareModal() {
       document.getElementById('shareModal').classList.add('hidden');
       shareModalTabId = null;
+      dashboardShareMode = false;
     }
 
     function handleShareModalOverlayClick(e) {
