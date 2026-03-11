@@ -2806,12 +2806,13 @@
   <div class="modal-overlay hidden" id="shareModal" onclick="handleShareModalOverlayClick(event)">
     <div class="modal-box share-modal-box">
       <div class="modal-title" id="shareModalTitle">Share Tab</div>
-      <div class="modal-subtitle">Send this link to share a read-only view of this tab. Recipients will only see this tab and cannot edit anything.</div>
+      <div class="modal-subtitle">Send this link to share a read-only view of this tab. This link is a <strong>snapshot</strong> of the current state — if you make changes later, click <strong>Regenerate Link</strong> to get an updated URL to reshare.</div>
       <textarea class="share-modal-url" id="shareModalUrl" readonly onclick="this.select()"></textarea>
       <div class="share-copy-feedback" id="shareCopyFeedback"></div>
       <div class="share-modal-actions">
         <button class="btn-share-copy" onclick="copyShareLink()">Copy Link</button>
         <button class="btn-share-email" onclick="emailShareLink()">Send via Email</button>
+        <button class="btn-share-email" onclick="regenerateShareLink()">Regenerate Link</button>
         <button class="btn-modal-cancel" onclick="closeShareModal()">Close</button>
       </div>
     </div>
@@ -3797,7 +3798,10 @@
 
     function decodeShareData(str) {
       try {
-        return JSON.parse(decodeURIComponent(escape(atob(str))));
+        // Restore any spaces that URLSearchParams may have introduced by treating
+        // Base64 '+' characters as spaces (legacy links generated without encodeURIComponent).
+        const sanitized = str.replace(/ /g, '+');
+        return JSON.parse(decodeURIComponent(escape(atob(sanitized))));
       } catch (e) { return null; }
     }
 
@@ -3809,7 +3813,7 @@
       const encoded = encodeShareData(payload);
       if (!encoded) return '';
       const base = window.location.href.split('?')[0].split('#')[0];
-      return base + '?share=' + encoded;
+      return base + '?share=' + encodeURIComponent(encoded);
     }
 
     function openShareModal(tabId, event) {
@@ -3822,6 +3826,15 @@
       document.getElementById('shareModalUrl').value = url;
       document.getElementById('shareCopyFeedback').textContent = '';
       document.getElementById('shareModal').classList.remove('hidden');
+    }
+
+    function regenerateShareLink() {
+      if (!shareModalTabId) return;
+      const url = generateShareUrl(shareModalTabId);
+      document.getElementById('shareModalUrl').value = url;
+      const feedback = document.getElementById('shareCopyFeedback');
+      feedback.textContent = 'Link updated with latest changes!';
+      setTimeout(() => { feedback.textContent = ''; }, 3000);
     }
 
     function closeShareModal() {
