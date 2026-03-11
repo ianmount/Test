@@ -4520,6 +4520,16 @@
             <span class="meta-label">Business Days</span>
             <span class="meta-value">${phase.businessDays}</span>
           </div>
+          <div class="detail-meta-item">
+            <span class="meta-label">Days Remaining</span>
+            <span class="meta-value">${(() => {
+              const end = new Date(phase.endDate);
+              end.setHours(0,0,0,0);
+              if (today > end) return 'Complete';
+              const diff = Math.round((end - today) / 86400000);
+              return diff === 0 ? 'Today' : diff + ' day' + (diff !== 1 ? 's' : '');
+            })()}</span>
+          </div>
         </div>
         <div class="phase-progress-section">
           <div class="phase-progress-header">
