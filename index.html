@@ -5629,6 +5629,10 @@
       }
       applyTab(activeTabId, false);
       updateLockState();
+      // Auto-create a room so the URL is always shareable and persistent
+      saveDashboardToRoom().then(function(roomId) {
+        if (roomId) window.history.replaceState({}, '', getLiveRoomUrl(roomId));
+      });
     })();
   </script>
 </body>
