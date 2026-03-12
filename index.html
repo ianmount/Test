@@ -562,13 +562,47 @@
     .gantt-timeline-col {
       flex: 1;
       display: flex;
+      flex-direction: column;
       position: relative;
+    }
+
+    .gantt-month-row {
+      position: relative;
+      height: 18px;
+      border-bottom: 1px solid var(--border-primary);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .gantt-month-label {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      font-size: 0.5625rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-right: 1px solid var(--border-primary);
+      overflow: hidden;
+      white-space: nowrap;
+      box-sizing: border-box;
+    }
+
+    .gantt-week-row {
+      display: flex;
+      flex: 1;
     }
 
     .gantt-week {
       flex: 1;
-      text-align: center;
-      padding: 8px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
       font-size: 0.6875rem;
       font-weight: 600;
       color: var(--text-secondary);
@@ -577,14 +611,6 @@
     }
 
     .gantt-week:last-child { border-right: none; }
-
-    .gantt-week .week-month {
-      font-size: 0.5625rem;
-      color: var(--text-muted);
-      margin-bottom: 1px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
 
     .gantt-body { position: relative; }
 
@@ -4247,14 +4273,32 @@
 
       const totalTimelineMs = timelineEnd.getTime() + 7 * 86400000 - timelineStart.getTime();
 
-      // Header weeks
+      // Build month spans positioned by actual calendar month boundaries
+      const timelineEndFullMs = timelineStart.getTime() + totalTimelineMs;
+      const monthSpans = [];
+      for (let m = new Date(timelineStart.getFullYear(), timelineStart.getMonth(), 1);
+           m.getTime() < timelineEndFullMs;
+           m.setMonth(m.getMonth() + 1)) {
+        const mStart = new Date(m);
+        const mEnd = new Date(m.getFullYear(), m.getMonth() + 1, 1);
+        const leftPct = Math.max(0, (mStart.getTime() - timelineStart.getTime()) / totalTimelineMs * 100);
+        const rightPct = Math.min(100, (mEnd.getTime() - timelineStart.getTime()) / totalTimelineMs * 100);
+        const widthPct = rightPct - leftPct;
+        if (widthPct > 0) {
+          monthSpans.push({
+            label: mStart.toLocaleDateString('en-US', { month: 'short' }),
+            leftPct,
+            widthPct
+          });
+        }
+      }
+      const monthRow = `<div class="gantt-month-row">${monthSpans.map(ms =>
+        `<div class="gantt-month-label" style="left:${ms.leftPct.toFixed(3)}%;width:${ms.widthPct.toFixed(3)}%">${ms.label}</div>`
+      ).join('')}</div>`;
+
+      // Header weeks (day numbers only)
       const headerWeeks = weeks.map(w => {
-        const monthName = w.toLocaleDateString('en-US', { month: 'short' });
-        const day = w.getDate();
-        return `<div class="gantt-week">
-          <div class="week-month">${monthName}</div>
-          ${day}
-        </div>`;
+        return `<div class="gantt-week">${w.getDate()}</div>`;
       }).join('');
 
       // Grid lines
@@ -4359,7 +4403,10 @@
       document.getElementById('ganttChart').innerHTML = `
         <div class="gantt-header">
           <div class="gantt-label-col">Phase</div>
-          <div class="gantt-timeline-col">${headerWeeks}</div>
+          <div class="gantt-timeline-col">
+            ${monthRow}
+            <div class="gantt-week-row">${headerWeeks}</div>
+          </div>
         </div>
         <div class="gantt-body">${rows}</div>
       `;
