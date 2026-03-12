@@ -3989,19 +3989,16 @@
 
       if (dashboardRoomId) {
         _setShareModalLive(getLiveRoomUrl(dashboardRoomId));
-        document.getElementById('shareModalSubtitle').innerHTML =
-          'Sharing all <strong>' + label + '</strong>. Anyone with this link always sees your <strong>latest pushed changes</strong>. ' +
-          'Click <strong>Push Latest Changes</strong> after editing to update what they see.';
       } else {
         _setShareModalLoading(true);
         document.getElementById('shareModalSubtitle').textContent = 'Creating live link\u2026';
         saveDashboardToRoom().then(roomId => {
           _setShareModalLoading(false);
           if (roomId) {
-            _setShareModalLive(getLiveRoomUrl(roomId));
-            document.getElementById('shareModalSubtitle').innerHTML =
-              'Sharing all <strong>' + label + '</strong>. Anyone with this link always sees your <strong>latest pushed changes</strong>. ' +
-              'Click <strong>Push Latest Changes</strong> after editing to update what they see.';
+            const liveUrl = getLiveRoomUrl(roomId);
+            // Update the browser URL so this link becomes the permanent dashboard URL
+            window.history.replaceState({}, '', liveUrl);
+            _setShareModalLive(liveUrl);
           } else {
             // Fallback: encode all tabs into a snapshot URL
             syncActiveTabState();
@@ -4038,9 +4035,10 @@
     function _setShareModalLive(url) {
       document.getElementById('shareModalUrl').value = url;
       document.getElementById('shareLiveBadge').classList.remove('hidden');
+      document.getElementById('sharePushBtn').style.display = 'none';
       document.getElementById('shareModalSubtitle').innerHTML =
-        'Anyone with this link always sees your <strong>latest pushed changes</strong>. ' +
-        'Click <strong>Push Latest Changes</strong> after editing to update what they see.';
+        'This is your dashboard\u2019s permanent URL. Anyone with the link can <strong>view and edit</strong>. ' +
+        'Changes <strong>auto-save</strong> — no need to push manually.';
     }
 
     function openShareModal(tabId, event) {
@@ -5372,8 +5370,9 @@
       tab.stagingSiteLink = stagingSiteLink;
     }
 
+    let _roomSaveTimer = null;
     function saveToStorage() {
-      if (isSharedView) return; // never persist a shared view into the owner's storage
+      if (isSharedView) return; // never persist a snapshot shared view into the owner's storage
       syncActiveTabState();
       try {
         localStorage.setItem('wte_tabs', JSON.stringify(tabs));
@@ -5381,6 +5380,11 @@
         localStorage.setItem('wte_nextTabId', String(nextTabId));
       } catch (e) { /* storage may be unavailable */ }
       flashSaveHint();
+      // Auto-sync to live room whenever changes are saved
+      if (dashboardRoomId) {
+        clearTimeout(_roomSaveTimer);
+        _roomSaveTimer = setTimeout(function() { saveDashboardToRoom(); }, 1500);
+      }
     }
 
     function flashSaveHint() {
@@ -5591,7 +5595,14 @@
               throw new Error('empty');
             }
             overlay.classList.add('hidden');
-            _enterSharedView(json.data.tabs);
+            // Load as fully editable — the room URL is the live dashboard
+            dashboardRoomId = roomParam;
+            tabs = json.data.tabs.map(function(t, i) { return Object.assign({}, t, { id: i + 1 }); });
+            nextTabId = tabs.length + 1;
+            activeTabId = tabs[0].id;
+            loadAdminSettings();
+            applyTab(activeTabId, false);
+            updateLockState();
           })
           .catch(function() {
             document.getElementById('roomLoadingMsg').textContent = '';
