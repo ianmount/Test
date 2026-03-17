@@ -1882,6 +1882,30 @@
       flex-wrap: wrap;
     }
 
+    .admin-config-select-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .admin-config-select {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-secondary);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.8125rem;
+      font-family: inherit;
+      padding: 6px 10px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+
+    .admin-config-select:focus {
+      border-color: var(--border-focus);
+    }
+
     .admin-milestone-rows {
       margin-left: 20px;
       padding-left: 12px;
@@ -3345,8 +3369,9 @@
     let dashboardShareMode = false; // true when share modal is showing all tabs
     let dashboardRoomId = null;   // live room id for the whole dashboard
     let useManualDurations = false;
-    // manualDurations[configKey][phaseKey] = { phaseDays, milestones: {idx: days}, milestoneDaysBeforeEnd: {idx: days} }
+    // manualDurations[configKey][phaseKey] = { phaseStartDate, phaseEndDate, milestones: {idx: {startDate, endDate}} }
     let manualDurations = {};
+    let adminSelectedConfig = null; // which config is shown in the admin durations panel
     let asanaProjectLink = '';
     let stagingSiteLink = '';
 
@@ -3483,15 +3508,28 @@
       let offset = 0; // cumulative business days already allocated
 
       return milestones.map((m, mIdx) => {
+        // Check for a manual date override for this milestone (durationDays or daysBeforeEnd types)
+        if (useManualDurations && configKey && phaseKey &&
+            (m.durationDays !== undefined || m.daysBeforeEnd !== undefined)) {
+          const manualMs = manualDurations[configKey]?.[phaseKey]?.milestones?.[mIdx];
+          if (manualMs?.startDate) {
+            const mStart = new Date(manualMs.startDate + 'T00:00:00');
+            const mEnd = manualMs.endDate
+              ? new Date(manualMs.endDate + 'T00:00:00')
+              : new Date(mStart);
+            // Advance offset for durationDays milestones so sibling positions stay reasonable
+            if (m.durationDays !== undefined && !m.parallelStart && !m.singleDay) {
+              offset += m.durationDays;
+            }
+            return { ...m, startDate: mStart, endDate: mEnd };
+          }
+        }
+
         // Milestones with daysBeforeEnd are anchored to the phase end,
         // independent of the sequential offset from the start.
         // They span from their computed start through the end of the phase.
         if (m.daysBeforeEnd !== undefined) {
-          const manualDbe = (useManualDurations && configKey && phaseKey)
-            ? manualDurations[configKey]?.[phaseKey]?.milestoneDaysBeforeEnd?.[mIdx]
-            : undefined;
-          const effectiveDbe = manualDbe !== undefined ? manualDbe : m.daysBeforeEnd;
-          const startOffset = totalBizDays - effectiveDbe;
+          const startOffset = totalBizDays - m.daysBeforeEnd;
           const mStart = startOffset <= 0
             ? new Date(phaseStart)
             : addBusinessDays(phaseStart, startOffset);
@@ -3520,12 +3558,8 @@
           mEnd = addBusinessDays(phaseStart, effectiveOffset + resolvedDuration - 1);
           if (!m.parallelStart) offset += resolvedDuration;
         } else if (m.durationDays !== undefined) {
-          const manualDays = (useManualDurations && configKey && phaseKey)
-            ? manualDurations[configKey]?.[phaseKey]?.milestones?.[mIdx]
-            : undefined;
-          const effectiveDays = manualDays !== undefined ? manualDays : m.durationDays;
-          mEnd = addBusinessDays(phaseStart, effectiveOffset + effectiveDays - 1);
-          if (!m.parallelStart) offset += effectiveDays;
+          mEnd = addBusinessDays(phaseStart, effectiveOffset + m.durationDays - 1);
+          if (!m.parallelStart) offset += m.durationDays;
         } else {
           mEnd = new Date(phaseEnd);
         }
@@ -5196,12 +5230,14 @@
           if (!manualDurations[configKey][phase.key]) {
             manualDurations[configKey][phase.key] = {
               phaseStartDate: dateToISOString(currentStart),
-              phaseEndDate: dateToISOString(defaultEnd)
+              phaseEndDate: dateToISOString(defaultEnd),
+              milestones: {}
             };
           } else {
             const entry = manualDurations[configKey][phase.key];
             if (!entry.phaseStartDate) entry.phaseStartDate = dateToISOString(currentStart);
             if (!entry.phaseEndDate) entry.phaseEndDate = dateToISOString(defaultEnd);
+            if (!entry.milestones) entry.milestones = {};
           }
           currentStart = new Date(defaultEnd);
           currentStart.setDate(currentStart.getDate() + 1);
@@ -5344,6 +5380,11 @@
       recalculate();
     }
 
+    function handleAdminConfigSelect(value) {
+      adminSelectedConfig = value;
+      renderAdminDurationsPanel();
+    }
+
     function renderAdminDurationsPanel() {
       const panel = document.getElementById('adminDurationsPanel');
       if (!panel) return;
@@ -5355,42 +5396,86 @@
         'fully-custom': 'Fully Custom \u2014 4 Month'
       };
 
-      let html = '';
-      Object.keys(TIMELINE_CONFIGS).forEach(configKey => {
-        const config = TIMELINE_CONFIGS[configKey];
-        html += `<div class="admin-config-card">`;
-        html += `<div class="admin-config-header">${configLabels[configKey] || esc(config.label)}</div>`;
-        html += `<div class="admin-phases-list">`;
+      const configKeys = Object.keys(TIMELINE_CONFIGS);
+      if (!adminSelectedConfig || !TIMELINE_CONFIGS[adminSelectedConfig]) {
+        adminSelectedConfig = configKeys[0];
+      }
 
-        config.phases.forEach(phase => {
-          const entry = manualDurations[configKey]?.[phase.key] || {};
-          const startVal = entry.phaseStartDate || '';
-          const endVal = entry.phaseEndDate || '';
+      // Config selector dropdown
+      let html = `<div class="admin-config-select-row">`;
+      html += `<span class="admin-field-label">Project type</span>`;
+      html += `<select class="admin-config-select" onchange="handleAdminConfigSelect(this.value)">`;
+      configKeys.forEach(key => {
+        const selected = key === adminSelectedConfig ? ' selected' : '';
+        html += `<option value="${key}"${selected}>${esc(configLabels[key] || key)}</option>`;
+      });
+      html += `</select></div>`;
 
-          html += `<div class="admin-phase-block">`;
-          html += `<div class="admin-phase-header">`;
-          html += `<span class="admin-phase-name">${esc(phase.name)}</span>`;
-          html += `</div>`;
-          html += `<div class="admin-phase-dates-row">`;
-          html += `<div class="admin-field-group">`;
-          html += `<span class="admin-field-label">Start date</span>`;
-          html += `<input type="date" class="admin-date-input" value="${startVal}"
-                         data-config="${configKey}" data-phase="${esc(phase.key)}" data-type="phase-start"
-                         onchange="updateManualPhaseDate(this)">`;
-          html += `</div>`;
-          html += `<div class="admin-field-group">`;
-          html += `<span class="admin-field-label">End date</span>`;
-          html += `<input type="date" class="admin-date-input" value="${endVal}"
-                         data-config="${configKey}" data-phase="${esc(phase.key)}" data-type="phase-end"
-                         onchange="updateManualPhaseDate(this)">`;
-          html += `</div>`;
-          html += `</div>`; // admin-phase-dates-row
-          html += `</div>`; // admin-phase-block
-        });
+      // Phases and milestones for the selected config
+      const configKey = adminSelectedConfig;
+      const config = TIMELINE_CONFIGS[configKey];
+      html += `<div class="admin-phases-list">`;
 
-        html += `</div></div>`; // admin-phases-list, admin-config-card
+      config.phases.forEach(phase => {
+        const entry = manualDurations[configKey]?.[phase.key] || {};
+        const startVal = entry.phaseStartDate || '';
+        const endVal = entry.phaseEndDate || '';
+
+        html += `<div class="admin-phase-block">`;
+        html += `<div class="admin-phase-header">`;
+        html += `<span class="admin-phase-name">${esc(phase.name)}</span>`;
+        html += `</div>`;
+        html += `<div class="admin-phase-dates-row">`;
+        html += `<div class="admin-field-group">`;
+        html += `<span class="admin-field-label">Start date</span>`;
+        html += `<input type="date" class="admin-date-input" value="${startVal}"
+                       data-config="${configKey}" data-phase="${esc(phase.key)}" data-type="phase-start"
+                       onchange="updateManualPhaseDate(this)">`;
+        html += `</div>`;
+        html += `<div class="admin-field-group">`;
+        html += `<span class="admin-field-label">End date</span>`;
+        html += `<input type="date" class="admin-date-input" value="${endVal}"
+                       data-config="${configKey}" data-phase="${esc(phase.key)}" data-type="phase-end"
+                       onchange="updateManualPhaseDate(this)">`;
+        html += `</div>`;
+        html += `</div>`; // admin-phase-dates-row
+
+        // Milestone date overrides (those with durationDays or daysBeforeEnd)
+        const editableMilestones = phase.milestones
+          .map((m, idx) => ({ m, idx }))
+          .filter(({ m }) => m.durationDays !== undefined || m.daysBeforeEnd !== undefined);
+
+        if (editableMilestones.length > 0) {
+          html += `<div class="admin-milestone-rows">`;
+          editableMilestones.forEach(({ m, idx }) => {
+            const msEntry = (entry.milestones || {})[idx] || {};
+            const msStart = msEntry.startDate || '';
+            const msEnd = msEntry.endDate || '';
+            html += `<div class="admin-milestone-row">`;
+            html += `<span class="admin-milestone-name">${esc(m.label)}</span>`;
+            html += `<div class="admin-phase-dates-row">`;
+            html += `<div class="admin-field-group">`;
+            html += `<span class="admin-field-label">Date</span>`;
+            html += `<input type="date" class="admin-date-input" value="${msStart}"
+                           data-config="${configKey}" data-phase="${esc(phase.key)}" data-milestone="${idx}" data-type="milestone-start"
+                           onchange="updateManualMilestoneDate(this)">`;
+            html += `</div>`;
+            html += `<div class="admin-field-group">`;
+            html += `<span class="admin-field-label">End date</span>`;
+            html += `<input type="date" class="admin-date-input" value="${msEnd}"
+                           data-config="${configKey}" data-phase="${esc(phase.key)}" data-milestone="${idx}" data-type="milestone-end"
+                           onchange="updateManualMilestoneDate(this)">`;
+            html += `</div>`;
+            html += `</div>`; // admin-phase-dates-row (milestone)
+            html += `</div>`; // admin-milestone-row
+          });
+          html += `</div>`; // admin-milestone-rows
+        }
+
+        html += `</div>`; // admin-phase-block
       });
 
+      html += `</div>`; // admin-phases-list
       panel.innerHTML = html;
     }
 
@@ -5402,7 +5487,7 @@
 
       if (!manualDurations[configKey]) manualDurations[configKey] = {};
       if (!manualDurations[configKey][phaseKey]) {
-        manualDurations[configKey][phaseKey] = { phaseStartDate: null, phaseEndDate: null };
+        manualDurations[configKey][phaseKey] = { phaseStartDate: null, phaseEndDate: null, milestones: {} };
       }
       const entry = manualDurations[configKey][phaseKey];
 
@@ -5410,6 +5495,30 @@
         entry.phaseStartDate = value || null;
       } else if (type === 'phase-end') {
         entry.phaseEndDate = value || null;
+      }
+      saveAdminSettings();
+      recalculate();
+    }
+
+    function updateManualMilestoneDate(input) {
+      const configKey = input.dataset.config;
+      const phaseKey = input.dataset.phase;
+      const mIdx = parseInt(input.dataset.milestone, 10);
+      const type = input.dataset.type;
+      const value = input.value; // YYYY-MM-DD string or ''
+
+      if (!manualDurations[configKey]) manualDurations[configKey] = {};
+      if (!manualDurations[configKey][phaseKey]) {
+        manualDurations[configKey][phaseKey] = { phaseStartDate: null, phaseEndDate: null, milestones: {} };
+      }
+      const entry = manualDurations[configKey][phaseKey];
+      if (!entry.milestones) entry.milestones = {};
+      if (!entry.milestones[mIdx]) entry.milestones[mIdx] = { startDate: null, endDate: null };
+
+      if (type === 'milestone-start') {
+        entry.milestones[mIdx].startDate = value || null;
+      } else if (type === 'milestone-end') {
+        entry.milestones[mIdx].endDate = value || null;
       }
       saveAdminSettings();
       recalculate();
