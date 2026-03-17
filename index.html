@@ -4400,7 +4400,11 @@
         </div>`;
       }).join('');
 
-      document.getElementById('ganttChart').innerHTML = `
+      const ganttEl = document.getElementById('ganttChart');
+      // Ensure the gantt is wide enough so flex week columns (min 80px each)
+      // and %-positioned bars share the same coordinate space
+      ganttEl.style.minWidth = (240 + weeks.length * 80) + 'px';
+      ganttEl.innerHTML = `
         <div class="gantt-header">
           <div class="gantt-label-col">Phase</div>
           <div class="gantt-timeline-col">
