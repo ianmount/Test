@@ -2891,6 +2891,19 @@
           </select>
         </div>
         <div class="control-group">
+          <label for="mdMcPair">MD / MC</label>
+          <select id="mdMcPair" onchange="setMdMcPair(this.value)">
+            <option value="">— Select pair —</option>
+            <option value="DP & Jason">DP &amp; Jason</option>
+            <option value="Alex & Brian">Alex &amp; Brian</option>
+            <option value="Ellie & Emily">Ellie &amp; Emily</option>
+            <option value="Will & Jaden">Will &amp; Jaden</option>
+            <option value="Anna & Sarah">Anna &amp; Sarah</option>
+            <option value="Sal & Hayley">Sal &amp; Hayley</option>
+            <option value="Maggie & Justin">Maggie &amp; Justin</option>
+          </select>
+        </div>
+        <div class="control-group">
           <label>Options</label>
           <label class="seo-toggle">
             <input type="checkbox" id="seoToggle" checked onchange="toggleSEO(this.checked)">
@@ -3413,6 +3426,7 @@
     let adminSelectedConfig = null; // which config is shown in the admin durations panel
     let asanaProjectLink = '';
     let stagingSiteLink = '';
+    let mdMcPair = '';
 
     /* ================================================================
        BUSINESS DAY LOGIC
@@ -3935,6 +3949,12 @@
         renderComparison();
       }
       closeDetailPanel();
+      saveToStorage();
+    }
+
+    function setMdMcPair(value) {
+      if (!isEditUnlocked) return;
+      mdMcPair = value;
       saveToStorage();
     }
 
@@ -5581,6 +5601,7 @@
         websiteType: 'template',
         semiCustomDuration: '3month',
         includeSEO: true,
+        mdMcPair: '',
         currentView: 'timeline',
         calendarMonthISO: null,
         completedMilestones: {},
@@ -5607,6 +5628,7 @@
       tab.manualDurations = manualDurations;
       tab.asanaProjectLink = asanaProjectLink;
       tab.stagingSiteLink = stagingSiteLink;
+      tab.mdMcPair = mdMcPair;
     }
 
     let _roomSaveTimer = null;
@@ -5726,6 +5748,7 @@
       manualDurations = tab.manualDurations || {};
       asanaProjectLink = tab.asanaProjectLink || '';
       stagingSiteLink = tab.stagingSiteLink || '';
+      mdMcPair = tab.mdMcPair || '';
       initManualDurations();
 
       // Update site name heading
@@ -5739,6 +5762,7 @@
       document.getElementById('websiteType').value = websiteType;
       document.getElementById('semiCustomDuration').value = semiCustomDuration;
       document.getElementById('seoToggle').checked = includeSEO;
+      document.getElementById('mdMcPair').value = mdMcPair;
       document.getElementById('semiCustomDurationGroup').style.display =
         websiteType === 'semi-custom' ? '' : 'none';
 
