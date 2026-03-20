@@ -1655,7 +1655,7 @@
 
     @media print {
       .header { position: static; }
-      .controls-panel, .header-actions, .tabs-bar { display: none; }
+      .controls-panel, .header-actions, .tabs-wrapper { display: none; }
       body { background: #fff; color: #000; }
     }
 
@@ -1927,6 +1927,41 @@
       color: var(--text-secondary);
       flex: 1;
       min-width: 0;
+    }
+
+    /* ===== Team Tabs Bar ===== */
+    .tabs-wrapper {
+      flex-shrink: 0;
+    }
+
+    .team-tabs-bar {
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .team-tab {
+      padding: 10px 22px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color var(--transition), border-color var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .team-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .team-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
 
     /* ===== Tabs Bar ===== */
@@ -2813,7 +2848,10 @@
   </div>
 
   <!-- Tabs Bar -->
-  <div class="tabs-bar" id="tabsBar"></div>
+  <div class="tabs-wrapper">
+    <div class="team-tabs-bar" id="teamTabsBar"></div>
+    <div class="tabs-bar" id="tabsBar"></div>
+  </div>
 
   <!-- Main -->
   <div class="main">
@@ -3353,6 +3391,7 @@
     let tabs = [];
     let activeTabId = 1;
     let nextTabId = 1;
+    let activeTeam = 'mike-ian'; // 'mike-ian' | 'parrish-andrea'
 
     // Milestone completion state for the active tab
     // Keys are "${phaseKey}_${milestoneIndex}", values are true
@@ -5533,10 +5572,11 @@
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    function createTab(name) {
+    function createTab(name, team) {
       return {
         id: nextTabId++,
         name: name || ('Website ' + nextTabId),
+        team: team || activeTeam || 'mike-ian',
         startDate: todayDateString(),
         websiteType: 'template',
         semiCustomDuration: '3month',
@@ -5577,6 +5617,7 @@
         localStorage.setItem('wte_tabs', JSON.stringify(tabs));
         localStorage.setItem('wte_activeTabId', String(activeTabId));
         localStorage.setItem('wte_nextTabId', String(nextTabId));
+        localStorage.setItem('wte_activeTeam', activeTeam);
       } catch (e) { /* storage may be unavailable */ }
       flashSaveHint();
       // Auto-sync to live room whenever changes are saved
@@ -5599,12 +5640,19 @@
         const storedTabs = localStorage.getItem('wte_tabs');
         const storedActive = localStorage.getItem('wte_activeTabId');
         const storedNextId = localStorage.getItem('wte_nextTabId');
+        const storedTeam = localStorage.getItem('wte_activeTeam');
         if (storedTabs) {
           tabs = JSON.parse(storedTabs);
+          // Migrate tabs that have no team property (assign to mike-ian by default)
+          tabs.forEach(t => { if (!t.team) t.team = 'mike-ian'; });
           nextTabId = storedNextId ? parseInt(storedNextId, 10) : tabs.length + 1;
           const parsedActive = storedActive ? parseInt(storedActive, 10) : null;
           activeTabId = (parsedActive && tabs.some(t => t.id === parsedActive))
             ? parsedActive : tabs[0].id;
+          if (storedTeam) activeTeam = storedTeam;
+          // Sync activeTeam with the loaded active tab
+          const activeTab = tabs.find(t => t.id === activeTabId);
+          if (activeTab) activeTeam = activeTab.team || 'mike-ian';
           return true;
         }
       } catch (e) { /* corrupt storage — fall through */ }
@@ -5623,15 +5671,35 @@
       if (event) event.stopPropagation();
       if (!isEditUnlocked) { showPasswordModal(); return; }
       if (tabs.length <= 1) return;
+      const closingTab = tabs.find(t => t.id === tabId);
       const idx = tabs.findIndex(t => t.id === tabId);
       if (idx === -1) return;
       tabs.splice(idx, 1);
       if (activeTabId === tabId) {
-        const nextTab = tabs[Math.min(idx, tabs.length - 1)];
+        // Prefer next tab in same team, then any tab
+        const teamTabs = tabs.filter(t => t.team === (closingTab && closingTab.team));
+        const nextTab = teamTabs.length > 0
+          ? teamTabs[Math.min(idx, teamTabs.length - 1)] || teamTabs[teamTabs.length - 1]
+          : tabs[Math.min(idx, tabs.length - 1)];
         applyTab(nextTab.id, false);
       } else {
         renderTabs();
         saveToStorage();
+      }
+    }
+
+    function switchTeam(team) {
+      if (team === activeTeam) return;
+      syncActiveTabState();
+      activeTeam = team;
+      const teamTabs = tabs.filter(t => t.team === team);
+      if (teamTabs.length > 0) {
+        applyTab(teamTabs[0].id, false);
+      } else {
+        // No tabs in this team yet — create one
+        const tab = createTab('Website 1', team);
+        tabs.push(tab);
+        applyTab(tab.id, false);
       }
     }
 
@@ -5646,6 +5714,7 @@
       activeTabId = tabId;
       const tab = tabs.find(t => t.id === tabId);
       if (!tab) return;
+      activeTeam = tab.team || 'mike-ian';
 
       // Restore global state from tab
       websiteType = tab.websiteType;
@@ -5724,11 +5793,27 @@
 
     function renderTabs() {
       const bar = document.getElementById('tabsBar');
+      const teamBar = document.getElementById('teamTabsBar');
       if (!bar) return;
+
+      // Render team tabs
+      if (teamBar) {
+        const teams = [
+          { id: 'mike-ian', label: 'Mike/Ian Team' },
+          { id: 'parrish-andrea', label: 'Parrish/Andrea Team' }
+        ];
+        teamBar.innerHTML = teams.map(team =>
+          `<div class="team-tab${activeTeam === team.id ? ' active' : ''}"
+                onclick="switchTeam('${team.id}')">${esc(team.label)}</div>`
+        ).join('');
+      }
+
+      // Filter site tabs to current team
+      const teamTabs = tabs.filter(t => (t.team || 'mike-ian') === activeTeam);
 
       if (isSharedView) {
         // Read-only tab bar: no add/close/rename/share controls
-        bar.innerHTML = tabs.map(tab => {
+        bar.innerHTML = teamTabs.map(tab => {
           const isActive = tab.id === activeTabId;
           return `<div class="tab${isActive ? ' active' : ''}" data-tab-id="${tab.id}"
                        onclick="applyTab(${tab.id})">
@@ -5740,7 +5825,7 @@
 
       const shareIcon = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
 
-      const tabsHtml = tabs.map(tab => {
+      const tabsHtml = teamTabs.map(tab => {
         const isActive = !isAdminViewActive && (tab.id === activeTabId);
         const closeBtn = tabs.length > 1
           ? `<button class="tab-close" title="Close tab"
@@ -5769,7 +5854,7 @@
 
     function _enterSharedView(sharedTabs) {
       isSharedView = true;
-      tabs = sharedTabs.map((t, i) => Object.assign({}, t, { id: i + 1 }));
+      tabs = sharedTabs.map((t, i) => Object.assign({ team: 'mike-ian' }, t, { id: i + 1 }));
       nextTabId = tabs.length + 1;
       activeTabId = tabs[0].id;
       document.getElementById('sharedViewBanner').classList.remove('hidden');
@@ -5796,7 +5881,7 @@
             overlay.classList.add('hidden');
             // Load as fully editable — the room URL is the live dashboard
             dashboardRoomId = roomParam;
-            tabs = json.data.tabs.map(function(t, i) { return Object.assign({}, t, { id: i + 1 }); });
+            tabs = json.data.tabs.map(function(t, i) { return Object.assign({ team: 'mike-ian' }, t, { id: i + 1 }); });
             nextTabId = tabs.length + 1;
             activeTabId = tabs[0].id;
             loadAdminSettings();
