@@ -2019,6 +2019,15 @@
       font-weight: 600;
     }
 
+    .tab.tab-dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+
+    .tab.tab-drag-over {
+      border-left: 2px solid var(--accent);
+    }
+
     .tab-name {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -3418,6 +3427,7 @@
     let isAdminViewActive = false;
     let isSharedView = false;     // true when loaded from a ?share= URL
     let shareModalTabId = null;   // tab id currently shown in share modal
+    let dragSrcTabId = null;      // tab id being dragged for reorder
     let dashboardShareMode = false; // true when share modal is showing all tabs
     let dashboardRoomId = null;   // live room id for the whole dashboard
     let useManualDurations = false;
@@ -5815,6 +5825,48 @@
       input.select();
     }
 
+    function tabDragStart(event, tabId) {
+      dragSrcTabId = tabId;
+      event.dataTransfer.effectAllowed = 'move';
+      // Defer adding class so the drag image renders normally
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`.tab[data-tab-id="${tabId}"]`);
+        if (el) el.classList.add('tab-dragging');
+      });
+    }
+
+    function tabDragOver(event, tabId) {
+      if (dragSrcTabId === null || dragSrcTabId === tabId) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.tab-drag-over').forEach(el => el.classList.remove('tab-drag-over'));
+      event.currentTarget.classList.add('tab-drag-over');
+    }
+
+    function tabDragLeave(event) {
+      event.currentTarget.classList.remove('tab-drag-over');
+    }
+
+    function tabDragEnd() {
+      dragSrcTabId = null;
+      document.querySelectorAll('.tab-dragging, .tab-drag-over').forEach(el => {
+        el.classList.remove('tab-dragging', 'tab-drag-over');
+      });
+    }
+
+    function tabDrop(event, targetTabId) {
+      event.preventDefault();
+      if (dragSrcTabId === null || dragSrcTabId === targetTabId) return;
+      const srcIdx = tabs.findIndex(t => t.id === dragSrcTabId);
+      const tgtIdx = tabs.findIndex(t => t.id === targetTabId);
+      if (srcIdx === -1 || tgtIdx === -1) return;
+      const [moved] = tabs.splice(srcIdx, 1);
+      tabs.splice(tgtIdx, 0, moved);
+      dragSrcTabId = null;
+      saveToStorage();
+      renderTabs();
+    }
+
     function renderTabs() {
       const bar = document.getElementById('tabsBar');
       const teamBar = document.getElementById('teamTabsBar');
@@ -5859,7 +5911,13 @@
           ? `<button class="tab-share" title="Share this tab" onclick="openShareModal(${tab.id}, event)">${shareIcon}</button>`
           : '';
         return `<div class="tab${isActive ? ' active' : ''}" data-tab-id="${tab.id}"
-                     onclick="applyTab(${tab.id})">
+                     draggable="true"
+                     onclick="applyTab(${tab.id})"
+                     ondragstart="tabDragStart(event, ${tab.id})"
+                     ondragover="tabDragOver(event, ${tab.id})"
+                     ondragleave="tabDragLeave(event)"
+                     ondragend="tabDragEnd()"
+                     ondrop="tabDrop(event, ${tab.id})">
           <span class="tab-name"
                 ondblclick="startRenameTab(${tab.id}, event)"
                 title="Double-click to rename">${esc(tab.name)}</span>
