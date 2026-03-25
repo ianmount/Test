@@ -4340,7 +4340,8 @@
       }
 
       const totalBusinessDays = calculatedPhases.reduce((sum, p) => sum + p.businessDays, 0);
-      const totalCalendarDays = calendarDaysBetween(projectStartDate, projectEndDate);
+      const phase1StartDate = calculatedPhases[0].startDate;
+      const totalCalendarDays = calendarDaysBetween(phase1StartDate, projectEndDate);
       const totalWeeks = Math.ceil(totalBusinessDays / 5);
       const overallComp = getOverallCompletion();
       const overdueList = getOverdueMilestones();
@@ -4352,7 +4353,7 @@
 
       container.innerHTML = `
         <div class="summary-card">
-          <div class="summary-card-value highlight">${formatDateShort(projectStartDate)}</div>
+          <div class="summary-card-value highlight">${formatDateShort(phase1StartDate)}</div>
           <div class="summary-card-label">Project Start</div>
         </div>
         <div class="summary-card">
