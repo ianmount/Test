@@ -4068,72 +4068,104 @@
 
       const { sections: allSections, tasks } = asanaData;
 
-      // Only include sections whose name contains "Website" (case-insensitive)
-      const sections = allSections.filter(s =>
-        s.name && s.name.toLowerCase().includes('website')
+      // Only include sections (tabs) whose name contains "Website" (case-insensitive)
+      const sectionGids = new Set(
+        allSections.filter(s => s.name && s.name.toLowerCase().includes('website')).map(s => s.gid)
       );
 
-      if (sections.length === 0) {
-        console.warn('No Asana sections contain "Website" in their name.');
-      }
-
-      // Build set of matching section GIDs for filtering
-      const sectionGids = new Set(sections.map(s => s.gid));
-
-      // Collect all tasks that belong to a matching section
+      // Collect tasks that belong to a matching "Website" tab
       const matchedTasks = tasks.filter(task =>
         task.memberships?.some(m => m.section && sectionGids.has(m.section.gid))
       );
 
-      // Only keep tasks with at least a due date (needed for Gantt bar positioning)
-      const datedTasks = matchedTasks.filter(t => t.due_on);
+      // Group tasks by their "Website Phase" custom field value
+      const phaseGroups = {};
+      const phaseOrder = [];
+      matchedTasks.forEach(task => {
+        const phaseField = task.custom_fields?.find(f => f.name === 'Website Phase');
+        const phaseName = phaseField?.display_value || 'Uncategorized';
+        if (!phaseGroups[phaseName]) {
+          phaseGroups[phaseName] = [];
+          phaseOrder.push(phaseName);
+        }
+        phaseGroups[phaseName].push(task);
+      });
 
       calculatedPhases = [];
       completedMilestones = {};
 
-      // Each task becomes its own phase row in the Gantt
-      datedTasks.forEach((task, idx) => {
+      // Each "Website Phase" group becomes one row in the Gantt
+      phaseOrder.forEach((phaseName, idx) => {
+        const phaseTasks = phaseGroups[phaseName];
         const sColor = SECTION_COLORS[idx % SECTION_COLORS.length];
-        const phaseKey = `asana_task_${task.gid}`;
+        const phaseKey = `asana_phase_${idx}`;
 
-        const taskStart = new Date((task.start_on || task.due_on) + 'T00:00:00');
-        const taskEnd = new Date(task.due_on + 'T00:00:00');
-        const businessDays = countBusinessDays(taskStart, taskEnd);
+        // Compute phase date range from its tasks
+        const datedTasks = phaseTasks.filter(t => t.due_on);
+        let phaseStart = null;
+        let phaseEnd = null;
+        datedTasks.forEach(t => {
+          const s = new Date((t.start_on || t.due_on) + 'T00:00:00');
+          const e = new Date(t.due_on + 'T00:00:00');
+          if (!phaseStart || s < phaseStart) phaseStart = s;
+          if (!phaseEnd || e > phaseEnd) phaseEnd = e;
+        });
 
-        // Strip the client name prefix (e.g. "New Garden | ") for cleaner labels
-        const shortName = task.name.includes('|')
-          ? task.name.split('|').slice(1).join('|').trim()
-          : task.name;
+        // Build milestones from tasks in this phase
+        const milestones = phaseTasks.map((task, mIdx) => {
+          // Strip client name prefix (e.g. "New Garden | ") for cleaner labels
+          const label = task.name.includes('|')
+            ? task.name.split('|').slice(1).join('|').trim()
+            : task.name;
+
+          const m = {
+            label,
+            sub: task.assignee?.name || '',
+            asanaGid: task.gid,
+            asanaCompleted: task.completed,
+          };
+          if (task.due_on) {
+            m.startDate = new Date((task.start_on || task.due_on) + 'T00:00:00');
+            m.endDate = new Date(task.due_on + 'T00:00:00');
+            m.singleDay = !task.start_on || task.start_on === task.due_on;
+          } else {
+            m.noDate = true;
+          }
+          if (task.completed) {
+            completedMilestones[`${phaseKey}_${mIdx}`] = true;
+          }
+          return m;
+        });
+
+        const businessDays = phaseStart && phaseEnd
+          ? countBusinessDays(phaseStart, phaseEnd)
+          : 0;
 
         calculatedPhases.push({
           key: phaseKey,
-          name: shortName,
-          shortName,
+          name: phaseName,
+          shortName: phaseName,
           cssClass: sColor.cssClass,
           eventClass: `ev-${(idx % 5) + 1}`,
           color: sColor.color,
           colorHex: sColor.colorHex,
-          startDate: taskStart,
-          endDate: taskEnd,
+          startDate: phaseStart || new Date(),
+          endDate: phaseEnd || new Date(),
           businessDays,
-          durationLabel: formatDuration(businessDays),
-          milestones: [],
-          isAsanaTask: true,
-          asanaCompleted: task.completed,
+          durationLabel: businessDays > 0 ? formatDuration(businessDays) : '\u2014',
+          milestones,
+          isAsanaPhase: true,
         });
-
-        if (task.completed) {
-          completedMilestones[`${phaseKey}_0`] = true;
-        }
       });
 
-      // Sort by start date
+      // Sort phases by start date
       calculatedPhases.sort((a, b) => a.startDate - b.startDate);
 
       // Compute project date range
-      if (calculatedPhases.length > 0) {
-        projectStartDate = new Date(Math.min(...calculatedPhases.map(p => p.startDate.getTime())));
-        projectEndDate = new Date(Math.max(...calculatedPhases.map(p => p.endDate.getTime())));
+      const datedPhases = calculatedPhases.filter(p => p.businessDays > 0);
+      if (datedPhases.length > 0) {
+        projectStartDate = new Date(Math.min(...datedPhases.map(p => p.startDate.getTime())));
+        projectEndDate = new Date(Math.max(...datedPhases.map(p => p.endDate.getTime())));
       } else {
         projectStartDate = new Date();
         projectEndDate = new Date();
