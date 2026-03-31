@@ -5961,7 +5961,7 @@
       const syncBtn = document.getElementById('asanaSyncBtn');
       if (!syncBtn) return;
       const hasValidLink = !!parseAsanaProjectGid(asanaProjectLink);
-      syncBtn.style.display = hasValidLink ? '' : 'none';
+      syncBtn.style.display = hasValidLink ? 'inline-flex' : 'none';
 
       // Update sync status indicator
       updateAsanaSyncUI();
