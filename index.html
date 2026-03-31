@@ -173,6 +173,128 @@
 
     .btn-staging:hover { background: #1d4ed8; border-color: #1d4ed8; }
 
+    /* --- Asana Sync Button & Status --- */
+    .btn-asana-sync {
+      background: transparent;
+      color: #f06a6a;
+      border: 1px solid #f06a6a;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: .75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: none;
+    }
+    .btn-asana-sync:hover { background: rgba(240,106,106,.12); }
+    .btn-asana-sync.syncing { opacity: .6; pointer-events: none; }
+
+    .asana-sync-status {
+      font-size: .7rem;
+      color: var(--text-muted);
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+    .asana-sync-status.visible { display: inline-flex; }
+    .asana-sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block; }
+    .asana-sync-dot.error { background: #ef4444; }
+
+    /* --- Asana Mode Banner --- */
+    .asana-mode-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: rgba(240,106,106,.08);
+      border: 1px solid rgba(240,106,106,.25);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: .8rem;
+      color: var(--text-secondary);
+    }
+    .asana-mode-banner.visible { display: flex; }
+    .asana-mode-banner .asana-banner-icon { color: #f06a6a; font-weight: 600; }
+    .asana-mode-banner .asana-banner-text { flex: 1; }
+    .asana-mode-banner .asana-banner-refresh {
+      background: none; border: 1px solid rgba(240,106,106,.4);
+      color: #f06a6a; border-radius: 5px; padding: 3px 10px; font-size: .72rem;
+      cursor: pointer;
+    }
+    .asana-mode-banner .asana-banner-refresh:hover { background: rgba(240,106,106,.12); }
+
+    /* --- Asana Gantt: Section Headers --- */
+    .gantt-section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-left: 3px solid var(--text-muted);
+      background: var(--bg-hover);
+      border-radius: 0 6px 6px 0;
+      margin: 6px 0 2px;
+    }
+    .gantt-section-header:first-child { margin-top: 0; }
+    .gantt-section-name { font-weight: 600; font-size: .82rem; color: var(--text-primary); }
+    .gantt-section-count {
+      font-size: .7rem; color: var(--text-muted);
+      background: var(--bg-elevated); padding: 1px 7px; border-radius: 10px;
+    }
+
+    /* --- Asana Gantt: Task Rows --- */
+    .gantt-task-row .gantt-row-label {
+      padding: 4px 12px 4px 20px;
+    }
+    .gantt-task-row .task-name {
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .gantt-task-row .task-meta {
+      font-size: .65rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .gantt-task-row.task-completed .task-name {
+      text-decoration: line-through;
+      opacity: .55;
+    }
+    .gantt-task-row.task-completed .gantt-bar {
+      opacity: .45;
+    }
+    .gantt-task-row.task-no-dates .gantt-row-label {
+      opacity: .45;
+    }
+
+    /* --- Asana Gantt: Task bar styling --- */
+    .gantt-bar.asana-task-bar {
+      height: 18px;
+      border-radius: 4px;
+      cursor: default;
+    }
+    .gantt-bar.asana-task-bar .gantt-bar-content {
+      padding: 0 6px;
+      justify-content: flex-start;
+    }
+    .gantt-bar.asana-task-bar .gantt-bar-label {
+      font-size: .65rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Asana task completion checkmark on bar */
+    .gantt-bar.asana-task-bar.bar-completed::before {
+      content: '\2713';
+      font-size: .6rem;
+      margin-right: 3px;
+      opacity: .7;
+    }
+
     /* ===== Main Layout ===== */
     .main {
       max-width: 1440px;
@@ -2871,6 +2993,14 @@
         <svg width="13" height="13" viewBox="0 0 32 32" fill="currentColor" style="vertical-align:-1px" aria-hidden="true"><circle cx="16" cy="7" r="7"/><circle cx="7" cy="23" r="7"/><circle cx="25" cy="23" r="7"/></svg>
         Open in Asana
       </a>
+      <button class="btn-asana-sync" id="asanaSyncBtn" onclick="syncFromAsana()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sync from Asana
+      </button>
+      <span class="asana-sync-status" id="asanaSyncStatus">
+        <span class="asana-sync-dot" id="asanaSyncDot"></span>
+        <span id="asanaSyncTime"></span>
+      </span>
       <a class="btn btn-staging" id="stagingSiteBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         Staging Site
@@ -2924,6 +3054,15 @@
 
     <!-- Project Status Banner -->
     <div class="status-banner" id="statusBanner"></div>
+
+    <!-- Asana Mode Banner -->
+    <div class="asana-mode-banner" id="asanaModeBanner">
+      <span class="asana-banner-icon">
+        <svg width="14" height="14" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><circle cx="16" cy="7" r="7"/><circle cx="7" cy="23" r="7"/><circle cx="25" cy="23" r="7"/></svg>
+      </span>
+      <span class="asana-banner-text" id="asanaBannerText">Timeline synced from Asana</span>
+      <button class="asana-banner-refresh" onclick="syncFromAsana()">Refresh</button>
+    </div>
 
     <!-- Summary Cards -->
     <div class="summary-row" id="summaryRow"></div>
@@ -3438,6 +3577,12 @@
     let stagingSiteLink = '';
     let mdMcPair = '';
 
+    // Asana integration state
+    let asanaMode = false;         // true when timeline is driven by Asana data
+    let asanaData = null;          // { project, sections, tasks } from API
+    let asanaLastSync = null;      // Date of last successful sync
+    let asanaSyncing = false;      // true while fetch is in progress
+
     /* ================================================================
        BUSINESS DAY LOGIC
        ================================================================
@@ -3834,7 +3979,277 @@
       `;
     }
 
+    /* ================================================================
+       ASANA INTEGRATION
+       ================================================================ */
+
+    const SECTION_COLORS = [
+      { cssClass: 'phase-1', colorHex: '#8b5cf6', color: 'var(--phase-1)' },
+      { cssClass: 'phase-2', colorHex: '#f59e0b', color: 'var(--phase-2)' },
+      { cssClass: 'phase-3', colorHex: '#10b981', color: 'var(--phase-3)' },
+      { cssClass: 'phase-4', colorHex: '#ef4444', color: 'var(--phase-4)' },
+      { cssClass: 'phase-5', colorHex: '#3b82f6', color: 'var(--phase-5)' },
+      { cssClass: 'phase-1', colorHex: '#ec4899', color: '#ec4899' },
+      { cssClass: 'phase-2', colorHex: '#6366f1', color: '#6366f1' },
+      { cssClass: 'phase-3', colorHex: '#14b8a6', color: '#14b8a6' },
+    ];
+
+    /**
+     * Extract the Asana project GID from various URL formats:
+     * - https://app.asana.com/0/{gid}/...
+     * - https://app.asana.com/1/{workspace}/project/{gid}
+     */
+    function parseAsanaProjectGid(url) {
+      if (!url) return null;
+      try {
+        const u = new URL(url);
+        if (u.hostname !== 'app.asana.com') return null;
+        const parts = u.pathname.split('/').filter(Boolean);
+        // New-style: /1/{workspace}/project/{gid}
+        const projIdx = parts.indexOf('project');
+        if (projIdx !== -1 && parts[projIdx + 1]) {
+          return parts[projIdx + 1];
+        }
+        // Old-style: /0/{gid}/...
+        if (parts[0] === '0' && parts[1] && /^\d+$/.test(parts[1])) {
+          return parts[1];
+        }
+        return null;
+      } catch { return null; }
+    }
+
+    /**
+     * Fetch tasks from the linked Asana project and enter Asana mode.
+     */
+    async function syncFromAsana() {
+      const gid = parseAsanaProjectGid(asanaProjectLink);
+      if (!gid) {
+        alert('No valid Asana project link set. Add one in the Admin panel.');
+        return;
+      }
+
+      asanaSyncing = true;
+      updateAsanaSyncUI();
+
+      try {
+        const resp = await fetch(`/api/asana-tasks?projectGid=${gid}`);
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ error: resp.statusText }));
+          throw new Error(err.error || 'Fetch failed');
+        }
+
+        const data = await resp.json();
+        asanaData = data;
+        asanaMode = true;
+        asanaLastSync = new Date();
+
+        // Convert Asana data → calculatedPhases & completedMilestones
+        applyAsanaData();
+        saveToStorage();
+      } catch (err) {
+        console.error('Asana sync failed:', err);
+        const dot = document.getElementById('asanaSyncDot');
+        if (dot) dot.classList.add('error');
+        const timeEl = document.getElementById('asanaSyncTime');
+        if (timeEl) timeEl.textContent = 'Sync failed';
+        const statusEl = document.getElementById('asanaSyncStatus');
+        if (statusEl) statusEl.classList.add('visible');
+      } finally {
+        asanaSyncing = false;
+        updateAsanaSyncUI();
+      }
+    }
+
+    /**
+     * Convert stored asanaData into calculatedPhases and render.
+     */
+    function applyAsanaData() {
+      if (!asanaData) return;
+
+      const { sections: allSections, tasks } = asanaData;
+
+      // Only include sections whose name contains "Website" (case-insensitive)
+      const sections = allSections.filter(s =>
+        s.name && s.name.toLowerCase().includes('website')
+      );
+
+      if (sections.length === 0) {
+        console.warn('No Asana sections contain "Website" in their name.');
+      }
+
+      // Build section → tasks mapping (use the first matching section membership in this project)
+      const sectionMap = {};
+      sections.forEach(s => { sectionMap[s.gid] = { ...s, tasks: [] }; });
+
+      tasks.forEach(task => {
+        const membership = task.memberships?.find(m =>
+          m.section && sectionMap[m.section.gid]
+        );
+        if (membership) {
+          sectionMap[membership.section.gid].tasks.push(task);
+        }
+      });
+
+      calculatedPhases = [];
+      completedMilestones = {};
+
+      let colorIdx = 0;
+      sections.forEach(section => {
+        const sectionTasks = sectionMap[section.gid]?.tasks || [];
+        // Only include sections that have at least one task with dates
+        const datedTasks = sectionTasks.filter(t => t.due_on || t.start_on);
+        if (datedTasks.length === 0 && sectionTasks.length === 0) return;
+
+        const sColor = SECTION_COLORS[colorIdx % SECTION_COLORS.length];
+        const phaseKey = `asana_${section.gid}`;
+
+        // Calculate section date range from tasks with dates
+        let sectionStart = null;
+        let sectionEnd = null;
+        datedTasks.forEach(t => {
+          const s = new Date((t.start_on || t.due_on) + 'T00:00:00');
+          const e = new Date(t.due_on + 'T00:00:00');
+          if (!sectionStart || s < sectionStart) sectionStart = s;
+          if (!sectionEnd || e > sectionEnd) sectionEnd = e;
+        });
+
+        // Build milestones from ALL tasks (dated + undated)
+        const milestones = sectionTasks.map((task, idx) => {
+          const m = {
+            label: task.name,
+            sub: task.assignee?.name || '',
+            asanaGid: task.gid,
+            asanaCompleted: task.completed,
+          };
+          if (task.due_on) {
+            m.startDate = new Date((task.start_on || task.due_on) + 'T00:00:00');
+            m.endDate = new Date(task.due_on + 'T00:00:00');
+            m.singleDay = !task.start_on || task.start_on === task.due_on;
+          } else {
+            m.noDate = true;
+          }
+          // Populate completedMilestones for the existing tracking system
+          if (task.completed) {
+            completedMilestones[`${phaseKey}_${idx}`] = true;
+          }
+          return m;
+        });
+
+        const businessDays = sectionStart && sectionEnd
+          ? countBusinessDays(sectionStart, sectionEnd)
+          : 0;
+
+        calculatedPhases.push({
+          key: phaseKey,
+          name: section.name,
+          shortName: section.name,
+          cssClass: sColor.cssClass,
+          eventClass: `ev-${(colorIdx % 5) + 1}`,
+          color: sColor.color,
+          colorHex: sColor.colorHex,
+          startDate: sectionStart || new Date(),
+          endDate: sectionEnd || new Date(),
+          businessDays,
+          durationLabel: businessDays > 0 ? formatDuration(businessDays) : '—',
+          milestones,
+          isAsanaSection: true,
+        });
+
+        colorIdx++;
+      });
+
+      // Filter out sections with no dated tasks for timeline range calculation
+      const datedPhases = calculatedPhases.filter(p => p.businessDays > 0);
+      if (datedPhases.length > 0) {
+        projectStartDate = new Date(Math.min(...datedPhases.map(p => p.startDate.getTime())));
+        projectEndDate = new Date(Math.max(...datedPhases.map(p => p.endDate.getTime())));
+      } else {
+        projectStartDate = new Date();
+        projectEndDate = new Date();
+      }
+
+      // Set calendar month
+      if (!calendarMonth && projectStartDate) {
+        calendarMonth = new Date(projectStartDate.getFullYear(), projectStartDate.getMonth(), 1);
+      }
+
+      // Update mode label
+      const label = document.getElementById('timelineModeLabel');
+      if (label) label.textContent = asanaData.project?.name || 'Asana Project';
+
+      // Clear shift scenario (not applicable in Asana mode)
+      shiftScenario = null;
+      shiftedPhases = [];
+      const impactCard = document.getElementById('shiftImpactCard');
+      if (impactCard) impactCard.innerHTML = '';
+
+      // Render everything
+      renderSummary();
+      renderTimeline();
+      renderCalendar();
+      renderLegend();
+      closeDetailPanel();
+      updateAsanaModeBanner();
+    }
+
+    function updateAsanaSyncUI() {
+      const syncBtn = document.getElementById('asanaSyncBtn');
+      const statusEl = document.getElementById('asanaSyncStatus');
+      const dotEl = document.getElementById('asanaSyncDot');
+      const timeEl = document.getElementById('asanaSyncTime');
+
+      if (syncBtn) {
+        syncBtn.classList.toggle('syncing', asanaSyncing);
+        syncBtn.textContent = asanaSyncing ? 'Syncing…' : 'Sync from Asana';
+      }
+
+      if (asanaLastSync && statusEl && dotEl && timeEl) {
+        statusEl.classList.add('visible');
+        dotEl.classList.remove('error');
+        const mins = Math.round((Date.now() - asanaLastSync.getTime()) / 60000);
+        timeEl.textContent = mins < 1 ? 'Just now' : `${mins}m ago`;
+      }
+    }
+
+    function updateAsanaModeBanner() {
+      const banner = document.getElementById('asanaModeBanner');
+      if (!banner) return;
+
+      if (asanaMode && asanaData) {
+        const allSections = asanaData.sections || [];
+        const filteredSections = allSections.filter(s => s.name && s.name.toLowerCase().includes('website'));
+        const filteredTaskCount = calculatedPhases.reduce((sum, p) => sum + p.milestones.length, 0);
+        const filteredCompletedCount = calculatedPhases.reduce((sum, p) => sum + p.milestones.filter(m => m.asanaCompleted).length, 0);
+        const projectName = asanaData.project?.name || 'Asana Project';
+        const bannerText = document.getElementById('asanaBannerText');
+        if (bannerText) {
+          bannerText.textContent = `${projectName} — ${filteredSections.length} sections \u2022 ${filteredTaskCount} tasks (${filteredCompletedCount} completed)`;
+        }
+        banner.classList.add('visible');
+      } else {
+        banner.classList.remove('visible');
+      }
+
+      // Hide/show controls panel based on mode
+      const controlsPanel = document.querySelector('.controls-panel');
+      if (controlsPanel) {
+        controlsPanel.style.display = asanaMode ? 'none' : '';
+      }
+
+      // Hide shift scenario panel in asana mode
+      const shiftPanel = document.getElementById('shiftScenarioPanel');
+      if (shiftPanel) {
+        shiftPanel.style.display = asanaMode ? 'none' : '';
+      }
+    }
+
     function recalculate() {
+      // If in Asana mode, use Asana data instead of preset configs
+      if (asanaMode && asanaData) {
+        applyAsanaData();
+        return;
+      }
+
       const startDateInput = document.getElementById('startDate').value;
 
       if (!startDateInput) return;
@@ -4398,6 +4813,11 @@
         return;
       }
 
+      if (asanaMode) {
+        renderAsanaTimeline();
+        return;
+      }
+
       // Extend timeline end to accommodate shifted launch if scenario is active
       const effectiveEndDate = (shiftedPhases.length > 0 && shiftedPhases[shiftedPhases.length - 1].endDate > projectEndDate)
         ? shiftedPhases[shiftedPhases.length - 1].endDate
@@ -4551,6 +4971,142 @@
       ganttEl.innerHTML = `
         <div class="gantt-header">
           <div class="gantt-label-col">Phase</div>
+          <div class="gantt-timeline-col">
+            ${monthRow}
+            <div class="gantt-week-row">${headerWeeks}</div>
+          </div>
+        </div>
+        <div class="gantt-body">${rows}</div>
+      `;
+    }
+
+    /**
+     * Render the Gantt chart in Asana mode — one row per task, grouped by section.
+     */
+    function renderAsanaTimeline() {
+      const timelineStart = getWeekStart(projectStartDate);
+      const timelineEndPadded = new Date(projectEndDate);
+      timelineEndPadded.setDate(timelineEndPadded.getDate() + 7);
+      const timelineEnd = getWeekStart(timelineEndPadded);
+
+      const weeks = [];
+      const cursor = new Date(timelineStart);
+      while (cursor <= timelineEnd) {
+        weeks.push(new Date(cursor));
+        cursor.setDate(cursor.getDate() + 7);
+      }
+
+      const totalTimelineMs = timelineEnd.getTime() + 7 * 86400000 - timelineStart.getTime();
+
+      // Month row
+      const timelineEndFullMs = timelineStart.getTime() + totalTimelineMs;
+      const monthSpans = [];
+      for (let m = new Date(timelineStart.getFullYear(), timelineStart.getMonth(), 1);
+           m.getTime() < timelineEndFullMs;
+           m.setMonth(m.getMonth() + 1)) {
+        const mStart = new Date(m);
+        const mEnd = new Date(m.getFullYear(), m.getMonth() + 1, 1);
+        const leftPct = Math.max(0, (mStart.getTime() - timelineStart.getTime()) / totalTimelineMs * 100);
+        const rightPct = Math.min(100, (mEnd.getTime() - timelineStart.getTime()) / totalTimelineMs * 100);
+        const widthPct = rightPct - leftPct;
+        if (widthPct > 0) {
+          monthSpans.push({
+            label: mStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+            leftPct,
+            widthPct
+          });
+        }
+      }
+      const monthRow = `<div class="gantt-month-row">${monthSpans.map(ms =>
+        `<div class="gantt-month-label" style="left:${ms.leftPct.toFixed(3)}%;width:${ms.widthPct.toFixed(3)}%">${ms.label}</div>`
+      ).join('')}</div>`;
+
+      const headerWeeks = weeks.map(w =>
+        `<div class="gantt-week">${w.getDate()}</div>`
+      ).join('');
+
+      const gridLines = weeks.map(() => '<div class="gantt-grid-line"></div>').join('');
+
+      // Today marker
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let todayMarkerPct = null;
+      if (today >= timelineStart && today <= new Date(timelineEnd.getTime() + 7 * 86400000)) {
+        todayMarkerPct = ((today.getTime() - timelineStart.getTime()) / totalTimelineMs) * 100;
+      }
+      const todayMarker = todayMarkerPct !== null
+        ? `<div class="gantt-today" style="left: ${todayMarkerPct}%"></div>`
+        : '';
+
+      // Build rows: section headers + task rows
+      let rows = '';
+      calculatedPhases.forEach(phase => {
+        const datedTasks = phase.milestones.filter(m => !m.noDate);
+        const undatedTasks = phase.milestones.filter(m => m.noDate);
+        const totalTasks = phase.milestones.length;
+        const completedTasks = phase.milestones.filter(m => m.asanaCompleted).length;
+
+        // Section header
+        rows += `<div class="gantt-section-header" style="border-left-color: ${phase.colorHex};">
+          <span class="gantt-section-name" style="color: ${phase.colorHex};">${esc(phase.name)}</span>
+          <span class="gantt-section-count">${completedTasks}/${totalTasks} tasks</span>
+        </div>`;
+
+        // Task rows for dated tasks
+        datedTasks.forEach(task => {
+          const taskStart = task.startDate.getTime();
+          const taskEnd = task.endDate.getTime();
+          const barStart = ((taskStart - timelineStart.getTime()) / totalTimelineMs) * 100;
+          const barEnd = ((taskEnd - timelineStart.getTime()) / totalTimelineMs) * 100;
+          const barWidth = Math.max(barEnd - barStart, 0.8);
+
+          const dateStr = task.singleDay
+            ? formatDateShort(task.startDate)
+            : `${formatDateShort(task.startDate)} \u2013 ${formatDateShort(task.endDate)}`;
+
+          const completedClass = task.asanaCompleted ? 'task-completed' : '';
+          const barCompletedClass = task.asanaCompleted ? 'bar-completed' : '';
+
+          rows += `<div class="gantt-row gantt-task-row ${completedClass}">
+            <div class="gantt-row-label">
+              <div class="task-name" title="${esc(task.label)}">${esc(task.label)}</div>
+              <div class="task-meta">${task.sub ? esc(task.sub) + ' \u2022 ' : ''}${dateStr}</div>
+            </div>
+            <div class="gantt-row-timeline">
+              <div class="gantt-grid-lines">${gridLines}</div>
+              ${todayMarker}
+              <div class="gantt-bar asana-task-bar ${phase.cssClass} ${barCompletedClass}"
+                   style="left: ${barStart}%; width: ${barWidth}%; background: ${phase.colorHex};"
+                   title="${esc(task.label)}: ${dateStr}">
+                <div class="gantt-bar-content">
+                  <span class="gantt-bar-label">${esc(task.label)}</span>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        });
+
+        // Undated tasks (compact list under section)
+        undatedTasks.forEach(task => {
+          const completedClass = task.asanaCompleted ? 'task-completed' : '';
+          rows += `<div class="gantt-row gantt-task-row task-no-dates ${completedClass}">
+            <div class="gantt-row-label">
+              <div class="task-name" title="${esc(task.label)}">${esc(task.label)}</div>
+              <div class="task-meta">${task.sub ? esc(task.sub) + ' \u2022 ' : ''}No dates set</div>
+            </div>
+            <div class="gantt-row-timeline">
+              <div class="gantt-grid-lines">${gridLines}</div>
+              ${todayMarker}
+            </div>
+          </div>`;
+        });
+      });
+
+      const ganttEl = document.getElementById('ganttChart');
+      ganttEl.style.minWidth = (240 + weeks.length * 80) + 'px';
+      ganttEl.innerHTML = `
+        <div class="gantt-header">
+          <div class="gantt-label-col">Task</div>
           <div class="gantt-timeline-col">
             ${monthRow}
             <div class="gantt-week-row">${headerWeeks}</div>
@@ -4768,7 +5324,8 @@
        ================================================================ */
 
     function renderLegend() {
-      const html = getCurrentPhases().map(phase =>
+      const phases = asanaMode ? calculatedPhases : getCurrentPhases();
+      const html = phases.map(phase =>
         `<div class="legend-item">
           <div class="legend-swatch" style="background: ${phase.colorHex};"></div>
           ${phase.shortName}
@@ -5378,6 +5935,14 @@
       asanaProjectLink = value.trim();
       renderAsanaButton();
       saveToStorage();
+      // If link was cleared, exit Asana mode
+      if (!asanaProjectLink && asanaMode) {
+        asanaMode = false;
+        asanaData = null;
+        asanaLastSync = null;
+        updateAsanaModeBanner();
+        recalculate();
+      }
     }
 
     function renderAsanaButton() {
@@ -5389,6 +5954,18 @@
       } else {
         btn.style.display = 'none';
       }
+      renderAsanaSyncButton();
+    }
+
+    function renderAsanaSyncButton() {
+      const syncBtn = document.getElementById('asanaSyncBtn');
+      if (!syncBtn) return;
+      const hasValidLink = !!parseAsanaProjectGid(asanaProjectLink);
+      syncBtn.style.display = hasValidLink ? '' : 'none';
+
+      // Update sync status indicator
+      updateAsanaSyncUI();
+      updateAsanaModeBanner();
     }
 
     function updateStagingLink(value) {
@@ -5620,7 +6197,10 @@
         manualDurations: {},
         asanaProjectLink: '',
         stagingSiteLink: '',
-        roomId: null
+        roomId: null,
+        asanaMode: false,
+        asanaData: null,
+        asanaLastSync: null
       };
     }
 
@@ -5640,6 +6220,9 @@
       tab.asanaProjectLink = asanaProjectLink;
       tab.stagingSiteLink = stagingSiteLink;
       tab.mdMcPair = mdMcPair;
+      tab.asanaMode = asanaMode;
+      tab.asanaData = asanaData;
+      tab.asanaLastSync = asanaLastSync ? asanaLastSync.toISOString() : null;
     }
 
     let _roomSaveTimer = null;
@@ -5760,12 +6343,16 @@
       asanaProjectLink = tab.asanaProjectLink || '';
       stagingSiteLink = tab.stagingSiteLink || '';
       mdMcPair = tab.mdMcPair || '';
+      asanaMode = tab.asanaMode || false;
+      asanaData = tab.asanaData || null;
+      asanaLastSync = tab.asanaLastSync ? new Date(tab.asanaLastSync) : null;
       initManualDurations();
 
       // Update site name heading
       const heading = document.getElementById('siteNameHeading');
       if (heading) heading.textContent = tab.name;
       renderAsanaButton();
+      renderAsanaSyncButton();
       renderStagingButton();
 
       // Restore UI controls
