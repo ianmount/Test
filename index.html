@@ -4077,92 +4077,63 @@
         console.warn('No Asana sections contain "Website" in their name.');
       }
 
-      // Build section → tasks mapping (use the first matching section membership in this project)
-      const sectionMap = {};
-      sections.forEach(s => { sectionMap[s.gid] = { ...s, tasks: [] }; });
+      // Build set of matching section GIDs for filtering
+      const sectionGids = new Set(sections.map(s => s.gid));
 
-      tasks.forEach(task => {
-        const membership = task.memberships?.find(m =>
-          m.section && sectionMap[m.section.gid]
-        );
-        if (membership) {
-          sectionMap[membership.section.gid].tasks.push(task);
-        }
-      });
+      // Collect all tasks that belong to a matching section
+      const matchedTasks = tasks.filter(task =>
+        task.memberships?.some(m => m.section && sectionGids.has(m.section.gid))
+      );
+
+      // Only keep tasks with at least a due date (needed for Gantt bar positioning)
+      const datedTasks = matchedTasks.filter(t => t.due_on);
 
       calculatedPhases = [];
       completedMilestones = {};
 
-      let colorIdx = 0;
-      sections.forEach(section => {
-        const sectionTasks = sectionMap[section.gid]?.tasks || [];
-        // Only include sections that have at least one task with dates
-        const datedTasks = sectionTasks.filter(t => t.due_on || t.start_on);
-        if (datedTasks.length === 0 && sectionTasks.length === 0) return;
+      // Each task becomes its own phase row in the Gantt
+      datedTasks.forEach((task, idx) => {
+        const sColor = SECTION_COLORS[idx % SECTION_COLORS.length];
+        const phaseKey = `asana_task_${task.gid}`;
 
-        const sColor = SECTION_COLORS[colorIdx % SECTION_COLORS.length];
-        const phaseKey = `asana_${section.gid}`;
+        const taskStart = new Date((task.start_on || task.due_on) + 'T00:00:00');
+        const taskEnd = new Date(task.due_on + 'T00:00:00');
+        const businessDays = countBusinessDays(taskStart, taskEnd);
 
-        // Calculate section date range from tasks with dates
-        let sectionStart = null;
-        let sectionEnd = null;
-        datedTasks.forEach(t => {
-          const s = new Date((t.start_on || t.due_on) + 'T00:00:00');
-          const e = new Date(t.due_on + 'T00:00:00');
-          if (!sectionStart || s < sectionStart) sectionStart = s;
-          if (!sectionEnd || e > sectionEnd) sectionEnd = e;
-        });
-
-        // Build milestones from ALL tasks (dated + undated)
-        const milestones = sectionTasks.map((task, idx) => {
-          const m = {
-            label: task.name,
-            sub: task.assignee?.name || '',
-            asanaGid: task.gid,
-            asanaCompleted: task.completed,
-          };
-          if (task.due_on) {
-            m.startDate = new Date((task.start_on || task.due_on) + 'T00:00:00');
-            m.endDate = new Date(task.due_on + 'T00:00:00');
-            m.singleDay = !task.start_on || task.start_on === task.due_on;
-          } else {
-            m.noDate = true;
-          }
-          // Populate completedMilestones for the existing tracking system
-          if (task.completed) {
-            completedMilestones[`${phaseKey}_${idx}`] = true;
-          }
-          return m;
-        });
-
-        const businessDays = sectionStart && sectionEnd
-          ? countBusinessDays(sectionStart, sectionEnd)
-          : 0;
+        // Strip the client name prefix (e.g. "New Garden | ") for cleaner labels
+        const shortName = task.name.includes('|')
+          ? task.name.split('|').slice(1).join('|').trim()
+          : task.name;
 
         calculatedPhases.push({
           key: phaseKey,
-          name: section.name,
-          shortName: section.name,
+          name: shortName,
+          shortName,
           cssClass: sColor.cssClass,
-          eventClass: `ev-${(colorIdx % 5) + 1}`,
+          eventClass: `ev-${(idx % 5) + 1}`,
           color: sColor.color,
           colorHex: sColor.colorHex,
-          startDate: sectionStart || new Date(),
-          endDate: sectionEnd || new Date(),
+          startDate: taskStart,
+          endDate: taskEnd,
           businessDays,
-          durationLabel: businessDays > 0 ? formatDuration(businessDays) : '—',
-          milestones,
-          isAsanaSection: true,
+          durationLabel: formatDuration(businessDays),
+          milestones: [],
+          isAsanaTask: true,
+          asanaCompleted: task.completed,
         });
 
-        colorIdx++;
+        if (task.completed) {
+          completedMilestones[`${phaseKey}_0`] = true;
+        }
       });
 
-      // Filter out sections with no dated tasks for timeline range calculation
-      const datedPhases = calculatedPhases.filter(p => p.businessDays > 0);
-      if (datedPhases.length > 0) {
-        projectStartDate = new Date(Math.min(...datedPhases.map(p => p.startDate.getTime())));
-        projectEndDate = new Date(Math.max(...datedPhases.map(p => p.endDate.getTime())));
+      // Sort by start date
+      calculatedPhases.sort((a, b) => a.startDate - b.startDate);
+
+      // Compute project date range
+      if (calculatedPhases.length > 0) {
+        projectStartDate = new Date(Math.min(...calculatedPhases.map(p => p.startDate.getTime())));
+        projectEndDate = new Date(Math.max(...calculatedPhases.map(p => p.endDate.getTime())));
       } else {
         projectStartDate = new Date();
         projectEndDate = new Date();
@@ -4216,14 +4187,12 @@
       if (!banner) return;
 
       if (asanaMode && asanaData) {
-        const allSections = asanaData.sections || [];
-        const filteredSections = allSections.filter(s => s.name && s.name.toLowerCase().includes('website'));
-        const filteredTaskCount = calculatedPhases.reduce((sum, p) => sum + p.milestones.length, 0);
-        const filteredCompletedCount = calculatedPhases.reduce((sum, p) => sum + p.milestones.filter(m => m.asanaCompleted).length, 0);
+        const totalTasks = calculatedPhases.length;
+        const completedTasks = calculatedPhases.filter(p => p.asanaCompleted).length;
         const projectName = asanaData.project?.name || 'Asana Project';
         const bannerText = document.getElementById('asanaBannerText');
         if (bannerText) {
-          bannerText.textContent = `${projectName} — ${filteredSections.length} sections \u2022 ${filteredTaskCount} tasks (${filteredCompletedCount} completed)`;
+          bannerText.textContent = `${projectName} — ${totalTasks} tasks (${completedTasks} completed)`;
         }
         banner.classList.add('visible');
       } else {
@@ -4810,11 +4779,6 @@
     function renderTimeline() {
       if (calculatedPhases.length === 0) {
         document.getElementById('ganttChart').innerHTML = '';
-        return;
-      }
-
-      if (asanaMode) {
-        renderAsanaTimeline();
         return;
       }
 
