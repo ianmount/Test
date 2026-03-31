@@ -4066,7 +4066,16 @@
     function applyAsanaData() {
       if (!asanaData) return;
 
-      const { sections, tasks } = asanaData;
+      const { sections: allSections, tasks } = asanaData;
+
+      // Only include sections whose name contains "Website" (case-insensitive)
+      const sections = allSections.filter(s =>
+        s.name && s.name.toLowerCase().includes('website')
+      );
+
+      if (sections.length === 0) {
+        console.warn('No Asana sections contain "Website" in their name.');
+      }
 
       // Build section → tasks mapping (use the first matching section membership in this project)
       const sectionMap = {};
@@ -4207,12 +4216,14 @@
       if (!banner) return;
 
       if (asanaMode && asanaData) {
-        const taskCount = asanaData.tasks?.length || 0;
-        const completedCount = asanaData.tasks?.filter(t => t.completed).length || 0;
+        const allSections = asanaData.sections || [];
+        const filteredSections = allSections.filter(s => s.name && s.name.toLowerCase().includes('website'));
+        const filteredTaskCount = calculatedPhases.reduce((sum, p) => sum + p.milestones.length, 0);
+        const filteredCompletedCount = calculatedPhases.reduce((sum, p) => sum + p.milestones.filter(m => m.asanaCompleted).length, 0);
         const projectName = asanaData.project?.name || 'Asana Project';
         const bannerText = document.getElementById('asanaBannerText');
         if (bannerText) {
-          bannerText.textContent = `${projectName} — ${taskCount} tasks (${completedCount} completed)`;
+          bannerText.textContent = `${projectName} — ${filteredSections.length} sections \u2022 ${filteredTaskCount} tasks (${filteredCompletedCount} completed)`;
         }
         banner.classList.add('visible');
       } else {
