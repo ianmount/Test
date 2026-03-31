@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     const sectionsData = await sectionsResp.json();
 
     // Fetch all tasks with pagination
-    const taskFields = 'name,start_on,due_on,completed,completed_at,assignee.name,memberships.section.name,memberships.section.gid';
+    const taskFields = 'name,start_on,due_on,completed,completed_at,assignee.name,memberships.section.name,memberships.section.gid,custom_fields.name,custom_fields.display_value';
     let allTasks = [];
     let offset = null;
     do {
